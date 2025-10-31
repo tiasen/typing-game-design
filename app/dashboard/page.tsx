@@ -9,24 +9,47 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { useLanguage } from "@/lib/language-context"
+import { useGuest } from "@/lib/guest-context"
 
 export default function DashboardPage() {
   const router = useRouter()
   const { t } = useLanguage()
+  const { isGuest, guestProfile, getAllProgress } = useGuest()
   const [profile, setProfile] = useState<any>(null)
   const [progressData, setProgressData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function loadData() {
+      if (isGuest && guestProfile) {
+        // Load guest data from localStorage
+        const guestProgress = getAllProgress()
+        setProfile({ display_name: guestProfile.username, avatar_color: guestProfile.avatarColor })
+        setProgressData(
+          guestProgress.map((p) => ({
+            stage_id: p.stageId,
+            completed: p.completed,
+            stars: p.stars,
+            best_wpm: p.bestWpm,
+            best_accuracy: p.bestAccuracy,
+          })),
+        )
+        setLoading(false)
+        return
+      }
+
+      // Load authenticated user data
       const supabase = createClient()
 
       const {
         data: { user },
         error,
       } = await supabase.auth.getUser()
+
       if (error || !user) {
-        router.push("/auth/login")
+        if (!isGuest) {
+          router.push("/")
+        }
         return
       }
 
@@ -39,7 +62,7 @@ export default function DashboardPage() {
     }
 
     loadData()
-  }, [router])
+  }, [router, isGuest, guestProfile, getAllProgress])
 
   if (loading) {
     return <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100" />
@@ -60,17 +83,19 @@ export default function DashboardPage() {
             <div>
               <h1 className="text-2xl font-bold text-primary">{t("appTitle")}</h1>
               <p className="text-sm text-muted-foreground">
-                {t("welcomeBackUser")}, {profile?.display_name}!
+                {isGuest ? t("guestWelcome") : `${t("welcomeBackUser")}, ${profile?.display_name}!`}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/leaderboard">
-              <Button variant="outline" className="rounded-full border-2 bg-transparent">
-                <span className="text-xl mr-2">🏆</span>
-                {t("leaderboard")}
-              </Button>
-            </Link>
+            {!isGuest && (
+              <Link href="/leaderboard">
+                <Button variant="outline" className="rounded-full border-2 bg-transparent">
+                  <span className="text-xl mr-2">🏆</span>
+                  {t("leaderboard")}
+                </Button>
+              </Link>
+            )}
             <Link href="/settings">
               <Button variant="outline" className="rounded-full border-2 bg-transparent">
                 <span className="text-xl mr-2">⚙️</span>
@@ -82,6 +107,14 @@ export default function DashboardPage() {
       </header>
 
       <main className="container mx-auto px-6 py-8">
+        {isGuest && (
+          <Card className="mb-6 border-4 border-yellow-400/50 bg-yellow-50 shadow-xl rounded-3xl">
+            <CardContent className="py-4">
+              <p className="text-center text-sm font-medium text-yellow-800">⚠️ {t("guestLimitation")}</p>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Progress Overview */}
         <Card className="mb-8 border-4 border-primary/20 shadow-xl rounded-3xl animate-bounce-in">
           <CardHeader>

@@ -139,6 +139,17 @@ export const translations = {
     english: "English",
     chinese: "中文",
     version: "Version",
+
+    guestMode: "Guest Mode",
+    continueAsGuest: "Continue as Guest",
+    guestModeDesc: "Practice without an account. Progress saved locally.",
+    enterUsername: "Enter a username",
+    username: "Username",
+    startPracticing: "Start Practicing",
+    guestWelcome: "Welcome, Guest!",
+    upgradeToAccount: "Upgrade to Account",
+    guestLimitation: "Guest mode: No leaderboard or cloud sync",
+    switchToGuest: "Try as Guest",
   },
   zh: {
     // Landing Page
@@ -277,6 +288,17 @@ export const translations = {
     english: "English",
     chinese: "中文",
     version: "版本",
+
+    guestMode: "游客模式",
+    continueAsGuest: "以游客身份继续",
+    guestModeDesc: "无需账号即可练习。进度保存在本地。",
+    enterUsername: "输入用户名",
+    username: "用户名",
+    startPracticing: "开始练习",
+    guestWelcome: "欢迎，游客！",
+    upgradeToAccount: "升级到账号",
+    guestLimitation: "游客模式：无排行榜和云同步",
+    switchToGuest: "以游客身份试用",
   },
 }
 

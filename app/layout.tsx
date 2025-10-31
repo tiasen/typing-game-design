@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import { LanguageProvider } from "@/lib/language-context"
+import { GuestProvider } from "@/lib/guest-context"
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -17,7 +18,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Type Master Kids - Learn Typing with Fun Games",
   description: "A fun and engaging typing practice app for elementary school students",
-    generator: 'v0.app'
+  generator: "v0.app",
 }
 
 export default function RootLayout({
@@ -28,7 +29,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
-        <LanguageProvider>{children}</LanguageProvider>
+        <GuestProvider>
+          <LanguageProvider>{children}</LanguageProvider>
+        </GuestProvider>
       </body>
     </html>
   )

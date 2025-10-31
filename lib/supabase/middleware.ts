@@ -29,15 +29,27 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Redirect to login if not authenticated and trying to access protected routes
-  if (!user && !request.nextUrl.pathname.startsWith("/auth") && request.nextUrl.pathname !== "/") {
+  const publicRoutes = ["/", "/auth", "/guest-setup", "/dashboard", "/practice", "/game"]
+  const isPublicRoute = publicRoutes.some((route) => request.nextUrl.pathname.startsWith(route))
+
+  // Redirect to login only if not authenticated and trying to access leaderboard or settings
+  if (
+    !user &&
+    !isPublicRoute &&
+    (request.nextUrl.pathname.startsWith("/leaderboard") || request.nextUrl.pathname.startsWith("/settings"))
+  ) {
     const url = request.nextUrl.clone()
     url.pathname = "/auth/login"
     return NextResponse.redirect(url)
   }
 
-  // Redirect to dashboard if authenticated and trying to access auth pages
-  if (user && (request.nextUrl.pathname.startsWith("/auth") || request.nextUrl.pathname === "/")) {
+  // Redirect to dashboard if authenticated and trying to access auth pages or guest-setup
+  if (
+    user &&
+    (request.nextUrl.pathname.startsWith("/auth") ||
+      request.nextUrl.pathname === "/" ||
+      request.nextUrl.pathname === "/guest-setup")
+  ) {
     const url = request.nextUrl.clone()
     url.pathname = "/dashboard"
     return NextResponse.redirect(url)

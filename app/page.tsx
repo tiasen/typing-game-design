@@ -44,19 +44,19 @@ export default function HomePage() {
         </div>
 
         {/* CTA Buttons - Using translations */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mt-12">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-12">
           <Button
             asChild
             size="lg"
-            className="text-lg px-8 py-6 rounded-full shadow-lg hover:scale-105 transition-transform"
+            className="w-64 h-14 text-lg rounded-full shadow-lg hover:scale-105 transition-transform"
           >
-            <Link href="/auth/sign-up">{t("startLearning")}</Link>
+            <Link href="/guest-setup">{t("startLearning")}</Link>
           </Button>
           <Button
             asChild
             size="lg"
             variant="outline"
-            className="text-lg px-8 py-6 rounded-full shadow-lg hover:scale-105 transition-transform border-4 bg-transparent"
+            className="w-64 h-14 text-lg rounded-full shadow-lg hover:scale-105 transition-transform border-4 bg-transparent"
           >
             <Link href="/auth/login">{t("login")}</Link>
           </Button>

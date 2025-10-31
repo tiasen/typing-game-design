@@ -12,6 +12,7 @@ import type { Stage } from "@/lib/types"
 import { getAudioManager } from "@/lib/audio"
 import Link from "next/link"
 import { useLanguage } from "@/lib/language-context"
+import { useGuest } from "@/lib/guest-context"
 
 interface PracticeSessionProps {
   stage: Stage
@@ -20,6 +21,7 @@ interface PracticeSessionProps {
 
 export function PracticeSession({ stage, userId }: PracticeSessionProps) {
   const { t } = useLanguage()
+  const { isGuest, saveProgress: saveGuestProgress } = useGuest()
   const router = useRouter()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [input, setInput] = useState("")
@@ -70,42 +72,49 @@ export function PracticeSession({ stage, userId }: PracticeSessionProps) {
     const audioManager = getAudioManager()
     audioManager.playComplete()
 
-    // Save progress to database
-    const supabase = createClient()
-
-    // Check if progress exists
-    const { data: existingProgress } = await supabase
-      .from("learning_progress")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("stage_id", stage.id)
-      .single()
-
-    if (existingProgress) {
-      // Update if better
-      await supabase
-        .from("learning_progress")
-        .update({
-          completed: true,
-          stars: Math.max(existingProgress.stars, earnedStars),
-          best_wpm: Math.max(existingProgress.best_wpm, results.wpm),
-          best_accuracy: Math.max(existingProgress.best_accuracy, results.accuracy),
-          completed_at: new Date().toISOString(),
-        })
-        .eq("id", existingProgress.id)
-    } else {
-      // Insert new
-      await supabase.from("learning_progress").insert({
-        user_id: userId,
-        stage_id: stage.id,
+    if (isGuest) {
+      saveGuestProgress({
+        stageId: stage.id,
         completed: true,
         stars: earnedStars,
-        best_wpm: results.wpm,
-        best_accuracy: results.accuracy,
-        completed_at: new Date().toISOString(),
+        bestWpm: results.wpm,
+        bestAccuracy: results.accuracy,
+        completedAt: new Date().toISOString(),
       })
+    } else {
+      const supabase = createClient()
+
+      const { data: existingProgress } = await supabase
+        .from("learning_progress")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("stage_id", stage.id)
+        .single()
+
+      if (existingProgress) {
+        await supabase
+          .from("learning_progress")
+          .update({
+            completed: true,
+            stars: Math.max(existingProgress.stars, earnedStars),
+            best_wpm: Math.max(existingProgress.best_wpm, results.wpm),
+            best_accuracy: Math.max(existingProgress.best_accuracy, results.accuracy),
+            completed_at: new Date().toISOString(),
+          })
+          .eq("id", existingProgress.id)
+      } else {
+        await supabase.from("learning_progress").insert({
+          user_id: userId,
+          stage_id: stage.id,
+          completed: true,
+          stars: earnedStars,
+          best_wpm: results.wpm,
+          best_accuracy: results.accuracy,
+          completed_at: new Date().toISOString(),
+        })
+      }
     }
-  }, [calculateResults, stage, userId])
+  }, [calculateResults, stage, userId, isGuest, saveGuestProgress])
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const audioManager = getAudioManager()
@@ -129,7 +138,6 @@ export function PracticeSession({ stage, userId }: PracticeSessionProps) {
     const newValue = e.target.value
     const audioManager = getAudioManager()
 
-    // Check for errors
     if (newValue.length > input.length) {
       const newChar = newValue[newValue.length - 1]
       const expectedChar = currentText[newValue.length - 1]
