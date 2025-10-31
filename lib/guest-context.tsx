@@ -45,14 +45,17 @@ export function GuestProvider({ children }: { children: ReactNode }) {
   }
 
   const getProgress = (stageId: number): GuestProgress | null => {
-    const saved = localStorage.getItem("guestProgress")
+    if (!guestProfile) return null
+    const saved = localStorage.getItem(`guest_progress_${guestProfile.username}`)
     if (!saved) return null
     const allProgress: GuestProgress[] = JSON.parse(saved)
     return allProgress.find((p) => p.stageId === stageId) || null
   }
 
   const saveProgress = (progress: GuestProgress) => {
-    const saved = localStorage.getItem("guestProgress")
+    if (!guestProfile) return
+    const storageKey = `guest_progress_${guestProfile.username}`
+    const saved = localStorage.getItem(storageKey)
     const allProgress: GuestProgress[] = saved ? JSON.parse(saved) : []
     const existingIndex = allProgress.findIndex((p) => p.stageId === progress.stageId)
 
@@ -69,17 +72,20 @@ export function GuestProvider({ children }: { children: ReactNode }) {
       allProgress.push(progress)
     }
 
-    localStorage.setItem("guestProgress", JSON.stringify(allProgress))
+    localStorage.setItem(storageKey, JSON.stringify(allProgress))
   }
 
   const getAllProgress = (): GuestProgress[] => {
-    const saved = localStorage.getItem("guestProgress")
+    if (!guestProfile) return []
+    const saved = localStorage.getItem(`guest_progress_${guestProfile.username}`)
     return saved ? JSON.parse(saved) : []
   }
 
   const clearGuestData = () => {
+    if (guestProfile) {
+      localStorage.removeItem(`guest_progress_${guestProfile.username}`)
+    }
     localStorage.removeItem("guestProfile")
-    localStorage.removeItem("guestProgress")
     setGuestProfileState(null)
   }
 

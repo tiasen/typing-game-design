@@ -11,6 +11,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useLanguage } from "@/lib/language-context"
+import { useGuest } from "@/lib/guest-context"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -19,6 +20,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { t } = useLanguage()
+  const { clearGuestData } = useGuest()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,10 +34,11 @@ export default function LoginPage() {
         password,
       })
       if (error) throw error
-      router.push("/dashboard")
+
+      clearGuestData()
+      window.location.href = "/dashboard"
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred")
-    } finally {
       setIsLoading(false)
     }
   }

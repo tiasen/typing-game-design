@@ -13,6 +13,7 @@ import { getAudioManager } from "@/lib/audio"
 import type { Profile } from "@/lib/types"
 import type { User } from "@supabase/supabase-js"
 import { useLanguage } from "@/lib/language-context"
+import { useGuest } from "@/lib/guest-context"
 
 const AVATAR_COLORS = ["#FF6B9D", "#FFD93D", "#6BCF7F", "#4ECDC4", "#A78BFA", "#FB923C"]
 
@@ -84,10 +85,20 @@ export function SettingsClient({ user, profile }: SettingsClientProps) {
     }
   }
 
+  const { clearGuestData } = useGuest()
+
   const handleSignOut = async () => {
     const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push("/")
+
+    clearGuestData()
+
+    const { error } = await supabase.auth.signOut()
+
+    if (error) {
+      console.error("Sign out error:", error)
+    }
+
+    window.location.href = "/"
   }
 
   return (

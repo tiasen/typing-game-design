@@ -14,15 +14,34 @@ import { useGuest } from "@/lib/guest-context"
 export default function DashboardPage() {
   const router = useRouter()
   const { t } = useLanguage()
-  const { isGuest, guestProfile, getAllProgress } = useGuest()
+  const { guestProfile, getAllProgress } = useGuest()
   const [profile, setProfile] = useState<any>(null)
   const [progressData, setProgressData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   useEffect(() => {
     async function loadData() {
-      if (isGuest && guestProfile) {
-        // Load guest data from localStorage
+      const supabase = createClient()
+
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser()
+
+      if (!error && user) {
+        setIsAuthenticated(true)
+        const { data: profileData } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+        const { data: progress } = await supabase.from("learning_progress").select("*").eq("user_id", user.id)
+
+        setProfile(profileData)
+        setProgressData(progress || [])
+        setLoading(false)
+        return
+      }
+
+      if (guestProfile) {
+        setIsAuthenticated(false)
         const guestProgress = getAllProgress()
         setProfile({ display_name: guestProfile.username, avatar_color: guestProfile.avatarColor })
         setProgressData(
@@ -38,31 +57,26 @@ export default function DashboardPage() {
         return
       }
 
-      // Load authenticated user data
-      const supabase = createClient()
-
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser()
-
-      if (error || !user) {
-        if (!isGuest) {
-          router.push("/")
-        }
-        return
-      }
-
-      const { data: profileData } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-      const { data: progress } = await supabase.from("learning_progress").select("*").eq("user_id", user.id)
-
-      setProfile(profileData)
-      setProgressData(progress || [])
-      setLoading(false)
+      router.push("/")
     }
 
     loadData()
-  }, [router, isGuest, guestProfile, getAllProgress])
+
+    const supabase = createClient()
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") {
+        router.push("/")
+      } else if (event === "SIGNED_IN") {
+        loadData()
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [router, guestProfile, getAllProgress])
 
   if (loading) {
     return <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100" />
@@ -83,12 +97,12 @@ export default function DashboardPage() {
             <div>
               <h1 className="text-2xl font-bold text-primary">{t("appTitle")}</h1>
               <p className="text-sm text-muted-foreground">
-                {isGuest ? t("guestWelcome") : `${t("welcomeBackUser")}, ${profile?.display_name}!`}
+                {!isAuthenticated ? t("guestWelcome") : `${t("welcomeBackUser")}, ${profile?.display_name}!`}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            {!isGuest && (
+            {isAuthenticated && (
               <Link href="/leaderboard">
                 <Button variant="outline" className="rounded-full border-2 bg-transparent">
                   <span className="text-xl mr-2">🏆</span>
@@ -107,7 +121,7 @@ export default function DashboardPage() {
       </header>
 
       <main className="container mx-auto px-6 py-8">
-        {isGuest && (
+        {!isAuthenticated && (
           <Card className="mb-6 border-4 border-yellow-400/50 bg-yellow-50 shadow-xl rounded-3xl">
             <CardContent className="py-4">
               <p className="text-center text-sm font-medium text-yellow-800">⚠️ {t("guestLimitation")}</p>

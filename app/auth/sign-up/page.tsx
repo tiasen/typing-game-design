@@ -11,6 +11,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useLanguage } from "@/lib/language-context"
+import { useGuest } from "@/lib/guest-context"
 
 const AVATAR_COLORS = ["#FF6B9D", "#FFD93D", "#6BCF7F", "#4ECDC4", "#A78BFA", "#FB923C"]
 
@@ -23,6 +24,7 @@ export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { t } = useLanguage()
+  const { clearGuestData } = useGuest()
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,6 +45,9 @@ export default function SignUpPage() {
         },
       })
       if (error) throw error
+
+      clearGuestData()
+
       router.push("/auth/sign-up-success")
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred")
