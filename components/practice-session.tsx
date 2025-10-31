@@ -14,6 +14,7 @@ import Link from "next/link"
 import { useLanguage } from "@/lib/language-context"
 import { useGuest } from "@/lib/guest-context"
 import { generateStageContent } from "@/lib/content-generator" // Import content generator
+import { KeyboardDisplay } from "@/components/keyboard-display"
 
 interface PracticeSessionProps {
   stage: Stage
@@ -38,6 +39,8 @@ export function PracticeSession({ stage, userId }: PracticeSessionProps) {
 
   const currentText = practiceContent[currentIndex]
   const progress = ((currentIndex + 1) / practiceContent.length) * 100
+
+  const nextChar = input.length < currentText.length ? currentText[input.length] : undefined
 
   useEffect(() => {
     if (!startTime && input.length > 0) {
@@ -233,50 +236,60 @@ export function PracticeSession({ stage, userId }: PracticeSessionProps) {
 
       {/* Practice Area */}
       <main className="flex-1 flex items-center justify-center p-6">
-        <Card className="max-w-3xl w-full border-4 border-primary/20 shadow-2xl rounded-3xl">
-          <CardHeader>
-            <CardTitle className="text-center text-2xl">{t("typeTextBelow")}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-8">
-            {/* Text to type */}
-            <div className="bg-muted/30 rounded-2xl p-8 text-center">
-              <p className="text-4xl font-mono tracking-wide text-foreground">{currentText}</p>
+        <div className="max-w-7xl w-full">
+          <div className="grid lg:grid-cols-[400px_1fr] gap-6 items-start">
+            {/* Left: Keyboard Display */}
+            <div className="lg:sticky lg:top-6">
+              <KeyboardDisplay currentKey={nextChar} />
             </div>
 
-            {/* Input field */}
-            <div className="space-y-2">
-              <input
-                type="text"
-                value={input}
-                onChange={handleInputChange}
-                onKeyPress={handleKeyPress}
-                className="w-full h-16 text-2xl text-center rounded-2xl border-4 border-primary/30 focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all"
-                placeholder={t("startTyping")}
-                autoFocus
-                spellCheck={false}
-                autoComplete="off"
-              />
-              <div className="flex justify-between text-sm text-muted-foreground px-2">
-                <span>{t("pressEnter")}</span>
-                <span className={input === currentText ? "text-accent font-bold" : ""}>
-                  {input === currentText ? `✓ ${t("correct")}` : `${input.length} / ${currentText.length}`}
-                </span>
-              </div>
-            </div>
+            {/* Right: Practice Content */}
+            <Card className="border-4 border-primary/20 shadow-2xl rounded-3xl">
+              <CardHeader>
+                <CardTitle className="text-center text-2xl">{t("typeTextBelow")}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-8">
+                {/* Text to type */}
+                <div className="bg-muted/30 rounded-2xl p-8 text-center">
+                  <p className="text-4xl font-mono tracking-wide text-foreground">{currentText}</p>
+                </div>
 
-            {/* Stats */}
-            <div className="flex justify-around text-center">
-              <div>
-                <p className="text-sm text-muted-foreground">{t("errors")}</p>
-                <p className="text-2xl font-bold text-destructive">{errors}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">{t("characters")}</p>
-                <p className="text-2xl font-bold text-primary">{totalChars}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                {/* Input field */}
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    value={input}
+                    onChange={handleInputChange}
+                    onKeyPress={handleKeyPress}
+                    className="w-full h-16 text-2xl text-center rounded-2xl border-4 border-primary/30 focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all"
+                    placeholder={t("startTyping")}
+                    autoFocus
+                    spellCheck={false}
+                    autoComplete="off"
+                  />
+                  <div className="flex justify-between text-sm text-muted-foreground px-2">
+                    <span>{t("pressEnter")}</span>
+                    <span className={input === currentText ? "text-accent font-bold" : ""}>
+                      {input === currentText ? `✓ ${t("correct")}` : `${input.length} / ${currentText.length}`}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Stats */}
+                <div className="flex justify-around text-center">
+                  <div>
+                    <p className="text-sm text-muted-foreground">{t("errors")}</p>
+                    <p className="text-2xl font-bold text-destructive">{errors}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">{t("characters")}</p>
+                    <p className="text-2xl font-bold text-primary">{totalChars}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </main>
     </div>
   )
