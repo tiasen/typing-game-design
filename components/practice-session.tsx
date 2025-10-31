@@ -13,6 +13,7 @@ import { getAudioManager } from "@/lib/audio"
 import Link from "next/link"
 import { useLanguage } from "@/lib/language-context"
 import { useGuest } from "@/lib/guest-context"
+import { generateStageContent } from "@/lib/content-generator" // Import content generator
 
 interface PracticeSessionProps {
   stage: Stage
@@ -23,6 +24,8 @@ export function PracticeSession({ stage, userId }: PracticeSessionProps) {
   const { t } = useLanguage()
   const { isGuest, saveProgress: saveGuestProgress } = useGuest()
   const router = useRouter()
+
+  const [practiceContent] = useState(() => generateStageContent(stage.id))
   const [currentIndex, setCurrentIndex] = useState(0)
   const [input, setInput] = useState("")
   const [startTime, setStartTime] = useState<number | null>(null)
@@ -33,8 +36,8 @@ export function PracticeSession({ stage, userId }: PracticeSessionProps) {
   const [accuracy, setAccuracy] = useState(100)
   const [stars, setStars] = useState(0)
 
-  const currentText = stage.content[currentIndex]
-  const progress = ((currentIndex + 1) / stage.content.length) * 100
+  const currentText = practiceContent[currentIndex]
+  const progress = ((currentIndex + 1) / practiceContent.length) * 100
 
   useEffect(() => {
     if (!startTime && input.length > 0) {
@@ -123,7 +126,7 @@ export function PracticeSession({ stage, userId }: PracticeSessionProps) {
       audioManager.playSuccess()
       setTotalChars((prev) => prev + currentText.length)
 
-      if (currentIndex < stage.content.length - 1) {
+      if (currentIndex < practiceContent.length - 1) {
         setCurrentIndex((prev) => prev + 1)
         setInput("")
       } else {
@@ -224,7 +227,7 @@ export function PracticeSession({ stage, userId }: PracticeSessionProps) {
       <div className="bg-card/50 px-6 py-3">
         <Progress value={progress} className="h-3" />
         <p className="text-center mt-2 text-sm font-medium">
-          {currentIndex + 1} / {stage.content.length}
+          {currentIndex + 1} / {practiceContent.length}
         </p>
       </div>
 
