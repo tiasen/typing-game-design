@@ -154,7 +154,7 @@ export default function DashboardPage() {
                     <div className="flex flex-col gap-3">
                       <Link href={isLocked ? "#" : `/practice/${stage.id}`}>
                         <Button
-                          className="w-full rounded-2xl shadow-lg"
+                          className="w-full h-12 rounded-2xl shadow-lg"
                           disabled={isLocked}
                           variant={isCompleted ? "outline" : "default"}
                         >
@@ -163,7 +163,7 @@ export default function DashboardPage() {
                       </Link>
                       {progress && !isLocked && (
                         <Link href={`/game/${stage.id}`}>
-                          <Button className="w-full rounded-2xl shadow-lg" variant="secondary">
+                          <Button className="w-full h-12 rounded-2xl shadow-lg" variant="secondary">
                             <span className="mr-2">🎮</span>
                             {t("playGame")}
                           </Button>

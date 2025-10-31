@@ -173,16 +173,16 @@ export function PracticeSession({ stage, userId }: PracticeSessionProps) {
             </div>
 
             <div className="flex flex-col gap-3">
-              <Button className="w-full h-12 text-lg rounded-2xl shadow-lg" asChild>
+              <Button className="w-full h-14 text-lg rounded-2xl shadow-lg" asChild>
                 <Link href={`/practice/${stage.id}`}>{t("practiceAgain")}</Link>
               </Button>
-              <Button className="w-full h-12 text-lg rounded-2xl shadow-lg" asChild>
+              <Button className="w-full h-14 text-lg rounded-2xl shadow-lg" asChild>
                 <Link href={`/game/${stage.id}`}>
                   <span className="mr-2">🎮</span>
                   {t("playGame")}
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full h-12 text-lg rounded-2xl border-2 bg-transparent" asChild>
+              <Button variant="outline" className="w-full h-14 text-lg rounded-2xl border-2 bg-transparent" asChild>
                 <Link href="/dashboard">{t("backToDashboard")}</Link>
               </Button>
             </div>
