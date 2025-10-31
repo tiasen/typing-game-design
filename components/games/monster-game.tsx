@@ -83,11 +83,11 @@ export function MonsterGame({ stage, userId, userName, onBack }: MonsterGameProp
   const getSpeedMultiplier = () => {
     switch (gameSpeed) {
       case "slow":
-        return 0.1 // 80% slower
+        return 0.2 // 80% slower
       case "fast":
         return 1 // 50% faster
       default:
-        return 0.3 // normal speed
+        return 0.5 // normal speed
     }
   }
 
