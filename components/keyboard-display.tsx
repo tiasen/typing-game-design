@@ -2,21 +2,24 @@
 
 import { keyboardLayout, fingerColors, getFingerForKey, type FingerType } from "@/lib/keyboard-layout"
 import { useLanguage } from "@/lib/language-context"
+import { getTranslation, translations } from "@/lib/i18n"
 
 interface KeyboardDisplayProps {
   currentKey?: string
 }
 
-const fingerNames: Record<FingerType, { en: string; zh: string }> = {
-  "left-pinky": { en: "Left Pinky", zh: "左手小指" },
-  "left-ring": { en: "Left Ring", zh: "左手无名指" },
-  "left-middle": { en: "Left Middle", zh: "左手中指" },
-  "left-index": { en: "Left Index", zh: "左手食指" },
-  "right-index": { en: "Right Index", zh: "右手食指" },
-  "right-middle": { en: "Right Middle", zh: "右手中指" },
-  "right-ring": { en: "Right Ring", zh: "右手无名指" },
-  "right-pinky": { en: "Right Pinky", zh: "右手小指" },
-  thumb: { en: "Thumb", zh: "拇指" },
+type TranslationKey = keyof typeof translations.en
+
+const fingerKeyMap: Record<FingerType, TranslationKey> = {
+  "left-pinky": "leftPinky",
+  "left-ring": "leftRing",
+  "left-middle": "leftMiddle",
+  "left-index": "leftIndex",
+  "right-index": "rightIndex",
+  "right-middle": "rightMiddle",
+  "right-ring": "rightRing",
+  "right-pinky": "rightPinky",
+  thumb: "thumb",
 }
 
 export function KeyboardDisplay({ currentKey }: KeyboardDisplayProps) {
@@ -25,15 +28,20 @@ export function KeyboardDisplay({ currentKey }: KeyboardDisplayProps) {
 
   return (
     <div className="space-y-3">
-      {currentKey && currentFinger && (
-        <div className="text-center p-3 bg-muted/50 rounded-xl border-2 border-primary/20">
-          <p className="text-xs text-muted-foreground mb-1">{language === "zh" ? "使用手指" : "Use finger"}:</p>
-          <div className="flex items-center justify-center gap-2">
-            <div className={`w-6 h-6 rounded-full ${fingerColors[currentFinger]} shadow-lg`} />
-            <p className="text-base font-bold text-foreground">{fingerNames[currentFinger][language]}</p>
-          </div>
+      {/* 保持固定高度避免 CLS，使用 opacity 控制显示 */}
+      <div
+        className={`text-center p-3 bg-muted/50 rounded-xl border-2 border-primary/20 transition-opacity duration-200 ${
+          currentKey && currentFinger ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+      >
+        <p className="text-xs text-muted-foreground mb-1">{getTranslation(language, "useFinger")}:</p>
+        <div className="flex items-center justify-center gap-2">
+          <div className={`w-6 h-6 rounded-full ${currentFinger ? fingerColors[currentFinger] : ""} shadow-lg`} />
+          <p className="text-base font-bold text-foreground">
+            {currentFinger ? getTranslation(language, fingerKeyMap[currentFinger]) : ""}
+          </p>
         </div>
-      )}
+      </div>
 
       <div className="bg-card/80 backdrop-blur-sm rounded-2xl p-4 border-2 border-primary/20 shadow-xl">
         <div className="space-y-1.5">
@@ -80,16 +88,16 @@ export function KeyboardDisplay({ currentKey }: KeyboardDisplayProps) {
         </div>
 
         <div className="mt-4 pt-3 border-t border-primary/20">
-          <p className="text-xs text-center text-muted-foreground mb-2">
-            {language === "zh" ? "手指颜色" : "Finger Colors"}:
-          </p>
+          <p className="text-xs text-center text-muted-foreground mb-2">{getTranslation(language, "fingerColors")}:</p>
           <div className="grid grid-cols-2 gap-1.5 text-xs">
             {(Object.keys(fingerColors) as FingerType[])
               .filter((f) => f !== "thumb")
               .map((finger) => (
                 <div key={finger} className="flex items-center gap-1.5">
                   <div className={`w-3 h-3 rounded-full ${fingerColors[finger]} shadow`} />
-                  <span className="text-muted-foreground text-xs truncate">{fingerNames[finger][language]}</span>
+                  <span className="text-muted-foreground text-xs truncate">
+                    {getTranslation(language, fingerKeyMap[finger])}
+                  </span>
                 </div>
               ))}
           </div>

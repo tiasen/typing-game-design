@@ -150,6 +150,19 @@ export const translations = {
     upgradeToAccount: "Upgrade to Account",
     guestLimitation: "Guest mode: No leaderboard or cloud sync",
     switchToGuest: "Try as Guest",
+
+    // Keyboard Display
+    useFinger: "Use finger",
+    fingerColors: "Finger Colors",
+    leftPinky: "Left Pinky",
+    leftRing: "Left Ring",
+    leftMiddle: "Left Middle",
+    leftIndex: "Left Index",
+    rightIndex: "Right Index",
+    rightMiddle: "Right Middle",
+    rightRing: "Right Ring",
+    rightPinky: "Right Pinky",
+    thumb: "Thumb",
   },
   zh: {
     // Landing Page
@@ -299,6 +312,19 @@ export const translations = {
     upgradeToAccount: "升级到账号",
     guestLimitation: "游客模式：无排行榜和云同步",
     switchToGuest: "以游客身份试用",
+
+    // Keyboard Display
+    useFinger: "使用手指",
+    fingerColors: "手指颜色",
+    leftPinky: "左手小指",
+    leftRing: "左手无名指",
+    leftMiddle: "左手中指",
+    leftIndex: "左手食指",
+    rightIndex: "右手食指",
+    rightMiddle: "右手中指",
+    rightRing: "右手无名指",
+    rightPinky: "右手小指",
+    thumb: "拇指",
   },
 }
 

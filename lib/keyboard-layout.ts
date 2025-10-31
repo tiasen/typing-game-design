@@ -24,7 +24,7 @@ export const fingerColors: Record<FingerType, string> = {
   "right-index": "bg-yellow-400",
   "right-middle": "bg-orange-400",
   "right-ring": "bg-red-400",
-  "right-pinky": "bg-rose-400",
+  "right-pinky": "bg-fuchsia-400",
   thumb: "bg-gray-400",
 }
 
