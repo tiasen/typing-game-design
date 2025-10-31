@@ -10,12 +10,14 @@ import { createClient } from "@/lib/supabase/client"
 import { getAudioManager } from "@/lib/audio"
 import Link from "next/link"
 import { useLanguage } from "@/lib/language-context"
+import { generateStageContent } from "@/lib/content-generator"
 
 interface Monster {
   id: number
   word: string
   position: number
   health: number
+  x: number // 固定的水平位置
 }
 
 interface Particle {
@@ -46,14 +48,16 @@ export function MonsterGame({ stage, userId, userName, onBack }: MonsterGameProp
   const [totalTyped, setTotalTyped] = useState(0)
   const [errors, setErrors] = useState(0)
   const [nextMonsterId, setNextMonsterId] = useState(0)
+  const [practiceContent] = useState(() => generateStageContent(stage.id))
 
   const spawnMonster = useCallback(() => {
-    const word = stage.content[Math.floor(Math.random() * stage.content.length)]
+    const word = practiceContent[Math.floor(Math.random() * practiceContent.length)]
     const newMonster: Monster = {
       id: nextMonsterId,
       word,
       position: 0,
       health: word.length,
+      x: Math.random() * 70, // 生成时确定固定的水平位置
     }
     setNextMonsterId((prev) => prev + 1)
     setMonsters((prev) => [...prev, newMonster])
@@ -79,11 +83,11 @@ export function MonsterGame({ stage, userId, userName, onBack }: MonsterGameProp
   const getSpeedMultiplier = () => {
     switch (gameSpeed) {
       case "slow":
-        return 0.6 // 40% slower
+        return 0.1 // 80% slower
       case "fast":
-        return 1.5 // 50% faster
+        return 1 // 50% faster
       default:
-        return 1.0 // normal speed
+        return 0.3 // normal speed
     }
   }
 
@@ -312,7 +316,7 @@ export function MonsterGame({ stage, userId, userName, onBack }: MonsterGameProp
             data-monster-id={monster.id}
             className="absolute transition-all duration-1000"
             style={{
-              left: `${Math.random() * 70}%`,
+              left: `${monster.x}%`,
               top: `${monster.position * 10}%`,
             }}
           >

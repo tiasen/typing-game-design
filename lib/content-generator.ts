@@ -25,7 +25,7 @@ function generateHomeRowContent(count = 50): string[] {
 }
 
 // Stage 2: All letters
-const ALPHABET = "abcdefghijklmnopqrstuvwxyz".split("")
+const ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789".split("")
 const COMMON_WORDS = [
   "the",
   "and",

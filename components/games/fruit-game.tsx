@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client"
 import { getAudioManager } from "@/lib/audio"
 import Link from "next/link"
 import { useLanguage } from "@/lib/language-context"
+import { generateStageContent } from "@/lib/content-generator"
 
 interface Fruit {
   id: number
@@ -43,9 +44,10 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
   const [errors, setErrors] = useState(0)
   const [nextFruitId, setNextFruitId] = useState(0)
   const [slicedFruits, setSlicedFruits] = useState<{ id: number; x: number; y: number }[]>([])
+  const [practiceContent] = useState(() => generateStageContent(stage.id))
 
   const spawnFruit = useCallback(() => {
-    const word = stage.content[Math.floor(Math.random() * stage.content.length)]
+    const word = practiceContent[Math.floor(Math.random() * practiceContent.length)]
     const newFruit: Fruit = {
       id: nextFruitId,
       word,
@@ -78,11 +80,11 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
   const getSpeedMultiplier = () => {
     switch (gameSpeed) {
       case "slow":
-        return 0.6 // 40% slower
+        return 0.1 // 80% slower
       case "fast":
-        return 1.5 // 50% faster
+        return 1 // 50% faster
       default:
-        return 1.0 // normal speed
+        return 0.3 // normal speed
     }
   }
 
