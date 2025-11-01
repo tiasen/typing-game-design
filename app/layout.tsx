@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import { LanguageProvider } from "@/lib/language-context"
 import { GuestProvider } from "@/lib/guest-context"
+import { GoogleAnalytics } from "@/components/GoogleAnalytics"
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -41,6 +42,8 @@ export default function RootLayout({
         <meta name="twitter:title" content="Type Master Kids - Learn Typing with Fun Games" />
         <meta name="twitter:description" content="A fun and engaging typing practice app for elementary school students" />
         <meta name="twitter:image" content="/logo.png" />
+        {/* Google Analytics moved to client component */}
+        <GoogleAnalytics />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
         <GuestProvider>
