@@ -11,6 +11,7 @@ import { getAudioManager } from "@/lib/audio"
 import Link from "next/link"
 import { useLanguage } from "@/lib/language-context"
 import { generateStageContent } from "@/lib/content-generator"
+import { GAME_SPEED_CONFIG } from "@/lib/game-speed-config"
 
 interface Fruit {
   id: number
@@ -80,22 +81,16 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
   }, [isPlaying, isComplete])
 
   const getSpeedMultiplier = () => {
-    switch (gameSpeed) {
-      case "slow":
-        return 0.2 // 80% slower
-      case "fast":
-        return 1.8 // 50% faster
-      default:
-        return 1 // normal speed
-    }
+    return GAME_SPEED_CONFIG.fruit.speedMultiplier[gameSpeed] ?? GAME_SPEED_CONFIG.fruit.speedMultiplier.normal
   }
-
   const speedMultiplier = getSpeedMultiplier()
 
   // Canvas animation loop for fruit movement and particles
   useEffect(() => {
     let animationId: number
     let lastTime = performance.now()
+    const moveSpeed = GAME_SPEED_CONFIG.fruit.move
+    const rotateSpeed = GAME_SPEED_CONFIG.fruit.rotate
     function animate(now: number) {
       const dt = Math.min((now - lastTime) / 1000, 0.1)
       lastTime = now
@@ -104,8 +99,8 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
           let updated = prev
             .map((fruit) => ({
               ...fruit,
-              y: fruit.y - (1 * speedMultiplier) / 3, // 2 * 0.4 * 0.2 = 0.16, 80% slower than previous
-              rotation: fruit.rotation + 0.3 * speedMultiplier,
+              y: fruit.y - moveSpeed * speedMultiplier,
+              rotation: fruit.rotation + rotateSpeed * speedMultiplier,
             }))
             .filter((fruit) => fruit.y > -20)
           return updated
@@ -146,14 +141,14 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
 
   useEffect(() => {
     if (!isPlaying || isComplete) return
-    if (fruits.length < 3) {
+    if (fruits.length < GAME_SPEED_CONFIG.fruit.maxFruits) {
       spawnFruit()
     }
     const spawnInterval = setInterval(() => {
-      if (fruits.length < 3) {
+      if (fruits.length < GAME_SPEED_CONFIG.fruit.maxFruits) {
         spawnFruit()
       }
-    }, 2000 / speedMultiplier)
+    }, GAME_SPEED_CONFIG.fruit.spawnInterval / speedMultiplier)
     return () => clearInterval(spawnInterval)
   }, [isPlaying, isComplete, fruits.length, spawnFruit, speedMultiplier])
 

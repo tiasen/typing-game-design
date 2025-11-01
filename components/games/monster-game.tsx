@@ -11,6 +11,7 @@ import { getAudioManager } from "@/lib/audio";
 import Link from "next/link";
 import { useLanguage } from "@/lib/language-context";
 import { generateStageContent } from "@/lib/content-generator";
+import { GAME_SPEED_CONFIG } from "@/lib/game-speed-config";
 
 interface Monster {
   id: number;
@@ -92,29 +93,21 @@ export function MonsterGame({
   }, [isPlaying, isComplete]);
 
   const getSpeedMultiplier = () => {
-    switch (gameSpeed) {
-      case "slow":
-        return 0.4; // 80% slower
-      case "fast":
-        return 3; // 50% faster
-      default:
-        return 1.5; // normal speed
-    }
+    return GAME_SPEED_CONFIG.monster.speedMultiplier[gameSpeed] ?? GAME_SPEED_CONFIG.monster.speedMultiplier.normal;
   };
-
   const speedMultiplier = getSpeedMultiplier();
 
   // 移除 setInterval 怪物移动逻辑，全部由 requestAnimationFrame 控制
 
   useEffect(() => {
     if (!isPlaying || isComplete) return;
-
+    const maxMonsters = GAME_SPEED_CONFIG.monster.maxMonsters;
+    const interval = GAME_SPEED_CONFIG.monster.spawnInterval / speedMultiplier;
     const spawnInterval = setInterval(() => {
-      if (monsters.length < 3) {
+      if (monsters.length < maxMonsters) {
         spawnMonster();
       }
-    }, 2000 / speedMultiplier);
-
+    }, interval);
     return () => clearInterval(spawnInterval);
   }, [isPlaying, isComplete, monsters.length, spawnMonster, speedMultiplier]);
 
@@ -222,7 +215,7 @@ export function MonsterGame({
           // 移动怪物
           let updated = prev.map((monster) => ({
             ...monster,
-            position: monster.position + dt * 2 * speedMultiplier,
+            position: monster.position + dt * GAME_SPEED_CONFIG.monster.move * speedMultiplier,
           }));
           // 移除到达底部的怪物
           updated = updated.filter(

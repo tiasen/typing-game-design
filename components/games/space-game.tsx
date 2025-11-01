@@ -11,6 +11,7 @@ import { getAudioManager } from "@/lib/audio"
 import Link from "next/link"
 import { useLanguage } from "@/lib/language-context"
 import { generateStageContent } from "@/lib/content-generator"
+import { GAME_SPEED_CONFIG } from "@/lib/game-speed-config"
 
 interface Asteroid {
   id: number
@@ -84,22 +85,15 @@ export function SpaceGame({ stage, userId, userName, onBack }: SpaceGameProps) {
   }, [isPlaying, isComplete])
 
   const getSpeedMultiplier = () => {
-    switch (gameSpeed) {
-      case "slow":
-        return 0.2 // 80% slower
-      case "fast":
-        return 2 // 50% faster
-      default:
-        return 0.8 // normal speed
-    }
+    return GAME_SPEED_CONFIG.space.speedMultiplier[gameSpeed] ?? GAME_SPEED_CONFIG.space.speedMultiplier.normal
   }
-
   const speedMultiplier = getSpeedMultiplier()
 
   // Canvas animation loop for asteroid movement and explosions
   useEffect(() => {
     let animationId: number
     let lastTime = performance.now()
+    const moveSpeed = GAME_SPEED_CONFIG.space.move
     function animate(now: number) {
       const dt = Math.min((now - lastTime) / 1000, 0.1)
       lastTime = now
@@ -108,7 +102,7 @@ export function SpaceGame({ stage, userId, userName, onBack }: SpaceGameProps) {
           let updated = prev
             .map((asteroid) => ({
               ...asteroid,
-              y: asteroid.y + (asteroid.speed * speedMultiplier) / 5,
+              y: asteroid.y + asteroid.speed * speedMultiplier * moveSpeed,
             }))
             .filter((asteroid) => asteroid.y < 100)
           return updated
@@ -172,14 +166,14 @@ export function SpaceGame({ stage, userId, userName, onBack }: SpaceGameProps) {
 
   useEffect(() => {
     if (!isPlaying || isComplete) return
-    if (asteroids.length < 3) {
+    if (asteroids.length < GAME_SPEED_CONFIG.space.maxAsteroids) {
       spawnAsteroid()
     }
     const spawnInterval = setInterval(() => {
-      if (asteroids.length < 3) {
+      if (asteroids.length < GAME_SPEED_CONFIG.space.maxAsteroids) {
         spawnAsteroid()
       }
-    }, 2000 / speedMultiplier)
+    }, GAME_SPEED_CONFIG.space.spawnInterval / speedMultiplier)
     return () => clearInterval(spawnInterval)
   }, [isPlaying, isComplete, asteroids.length, spawnAsteroid, speedMultiplier])
 
