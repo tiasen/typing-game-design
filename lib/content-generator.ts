@@ -1,3 +1,69 @@
+// 萌新阶段：每次只练习一个字母或数字
+const BEGINNER_KEYS = [
+  ..."asdfjkl;qweruiopzxcvm,.1234567890".split("")
+]
+function generateBeginnerStageContent(count = 30): string[] {
+  const content: string[] = []
+  for (let i = 0; i < count; i++) {
+    content.push(BEGINNER_KEYS[Math.floor(Math.random() * BEGINNER_KEYS.length)])
+  }
+  return shuffleArray(content)
+}
+
+// Top row keys
+const TOP_ROW_KEYS = ["q", "w", "e", "r", "u", "i", "o", "p"]
+function generateTopRowContent(count = 50): string[] {
+  const content: string[] = []
+  for (let i = 0; i < 8; i++) {
+    content.push(TOP_ROW_KEYS[Math.floor(Math.random() * TOP_ROW_KEYS.length)])
+  }
+  while (content.length < count) {
+    const length = Math.floor(Math.random() * 4) + 1 // 1-4 characters
+    let combination = ""
+    for (let i = 0; i < length; i++) {
+      combination += TOP_ROW_KEYS[Math.floor(Math.random() * TOP_ROW_KEYS.length)]
+    }
+    content.push(combination)
+  }
+  return shuffleArray(content)
+}
+
+// Bottom row keys
+const BOTTOM_ROW_KEYS = ["z", "x", "c", "v", "m", ",", ".", "/"]
+function generateBottomRowContent(count = 50): string[] {
+  const content: string[] = []
+  for (let i = 0; i < 8; i++) {
+    content.push(BOTTOM_ROW_KEYS[Math.floor(Math.random() * BOTTOM_ROW_KEYS.length)])
+  }
+  while (content.length < count) {
+    const length = Math.floor(Math.random() * 4) + 1 // 1-4 characters
+    let combination = ""
+    for (let i = 0; i < length; i++) {
+      combination += BOTTOM_ROW_KEYS[Math.floor(Math.random() * BOTTOM_ROW_KEYS.length)]
+    }
+    content.push(combination)
+  }
+  return shuffleArray(content)
+}
+
+// Number row keys
+const NUMBER_ROW_KEYS = ["1","2","3","4","5","6","7","8","9","0"]
+function generateNumberRowContent(count = 50): string[] {
+  const content: string[] = []
+  for (let i = 0; i < 10; i++) {
+    content.push(NUMBER_ROW_KEYS[Math.floor(Math.random() * NUMBER_ROW_KEYS.length)])
+  }
+  while (content.length < count) {
+    const length = Math.floor(Math.random() * 4) + 1 // 1-4 characters
+    let combination = ""
+    for (let i = 0; i < length; i++) {
+      combination += NUMBER_ROW_KEYS[Math.floor(Math.random() * NUMBER_ROW_KEYS.length)]
+    }
+    content.push(combination)
+  }
+  return shuffleArray(content)
+}
+
 // Content generator for dynamic practice content
 
 // Stage 1: Home row keys
@@ -11,9 +77,9 @@ function generateHomeRowContent(count = 50): string[] {
     content.push(HOME_ROW_KEYS[Math.floor(Math.random() * HOME_ROW_KEYS.length)])
   }
 
-  // Generate combinations of varying lengths
+  // Generate combinations of up to 4 characters
   while (content.length < count) {
-    const length = Math.floor(Math.random() * 8) + 1 // 1-8 characters
+    const length = Math.floor(Math.random() * 4) + 1 // 1-4 characters
     let combination = ""
     for (let i = 0; i < length; i++) {
       combination += HOME_ROW_KEYS[Math.floor(Math.random() * HOME_ROW_KEYS.length)]
@@ -50,31 +116,6 @@ const COMMON_WORDS = [
   "man",
   "new",
   "now",
-  "old",
-  "see",
-  "two",
-  "way",
-  "who",
-  "boy",
-  "did",
-  "that",
-  "with",
-  "have",
-  "this",
-  "will",
-  "your",
-  "from",
-  "they",
-  "know",
-  "want",
-  "been",
-  "good",
-  "much",
-  "some",
-  "time",
-  "very",
-  "when",
-  "come",
   "about",
   "after",
   "again",
@@ -359,15 +400,23 @@ function shuffleArray<T>(array: T[]): T[] {
 // Main generator function
 export function generateStageContent(stageId: number): string[] {
   switch (stageId) {
+    case 0:
+      return generateBeginnerStageContent()
     case 1:
       return generateHomeRowContent()
     case 2:
-      return generateAllLettersContent()
+      return generateTopRowContent()
     case 3:
-      return generateSimpleWordsContent()
+      return generateBottomRowContent()
     case 4:
-      return generateSentencesContent()
+      return generateNumberRowContent()
     case 5:
+      return generateAllLettersContent()
+    case 6:
+      return generateSimpleWordsContent()
+    case 7:
+      return generateSentencesContent()
+    case 8:
       return generateSpeedChallengeContent()
     default:
       return []

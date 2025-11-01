@@ -1,7 +1,10 @@
+
 export type Language = "en" | "zh"
 
 export const translations = {
   en: {
+    stage0Title: "Beginner (Single Key)",
+    stage0Desc: "Practice one letter or number at a time",
     // Landing Page
     appTitle: "Type Master Kids",
     appTagline: "Learn to type with fun games and challenges!",
@@ -57,16 +60,24 @@ export const translations = {
     signOut: "Sign Out",
 
     // Stages
-    stage1Title: "Home Row Keys",
-    stage1Desc: "Learn ASDF JKL; keys",
-    stage2Title: "All Letters",
-    stage2Desc: "Practice A-Z",
-    stage3Title: "Simple Words",
-    stage3Desc: "Type common words",
-    stage4Title: "Sentences",
-    stage4Desc: "Practice full sentences",
-    stage5Title: "Speed Challenge",
-    stage5Desc: "Master your speed",
+  stage1Title: "Home Row (ASDF)",
+  stage1Desc: "Practice the home row keys: ASDF JKL;",
+  stage2Title: "Top Row (QWER)",
+  stage2Desc: "Practice the top row keys: QWER UIOP",
+  stage3Title: "Bottom Row (ZXCV)",
+  stage3Desc: "Practice the bottom row keys: ZXCV M,./",
+  stage4Title: "Number Row",
+  stage4Desc: "Practice the number row: 1234567890",
+  stage5Title: "Home Row Keys",
+  stage5Desc: "Learn the basic finger positions",
+  stage6Title: "All Letters",
+  stage6Desc: "Practice A-Z",
+  stage7Title: "Simple Words",
+  stage7Desc: "Type common words",
+  stage8Title: "Sentences",
+  stage8Desc: "Practice full sentences",
+  stage9Title: "Speed Challenge",
+  stage9Desc: "Master your speed",
 
     // Practice
     typeTextBelow: "Type the text below",
@@ -165,6 +176,8 @@ export const translations = {
     thumb: "Thumb",
   },
   zh: {
+    stage0Title: "萌新阶段（单键）",
+    stage0Desc: "每次只练习一个字母或数字",
     // Landing Page
     appTitle: "打字小能手",
     appTagline: "通过有趣的游戏和挑战学习打字！",
@@ -219,16 +232,24 @@ export const translations = {
     signOut: "退出登录",
 
     // Stages
-    stage1Title: "基础键位",
-    stage1Desc: "学习 ASDF JKL; 键",
-    stage2Title: "所有字母",
-    stage2Desc: "练习 A-Z",
-    stage3Title: "简单单词",
-    stage3Desc: "输入常用单词",
-    stage4Title: "句子练习",
-    stage4Desc: "练习完整句子",
-    stage5Title: "速度挑战",
-    stage5Desc: "掌握你的速度",
+  stage1Title: "基础行 (ASDF)",
+  stage1Desc: "练习基础行按键：ASDF JKL;",
+  stage2Title: "上排 (QWER)",
+  stage2Desc: "练习上排按键：QWER UIOP",
+  stage3Title: "下排 (ZXCV)",
+  stage3Desc: "练习下排按键：ZXCV M,./",
+  stage4Title: "数字行",
+  stage4Desc: "练习数字行：1234567890",
+  stage5Title: "基础键位",
+  stage5Desc: "学习 ASDF JKL; 键位和指法",
+  stage6Title: "所有字母",
+  stage6Desc: "练习 A-Z",
+  stage7Title: "简单单词",
+  stage7Desc: "输入常用单词",
+  stage8Title: "句子练习",
+  stage8Desc: "练习完整句子",
+  stage9Title: "速度挑战",
+  stage9Desc: "掌握你的速度",
 
     // Practice
     typeTextBelow: "输入下面的文字",
