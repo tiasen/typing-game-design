@@ -61,7 +61,7 @@ export function SpaceGame({ stage, userId, userName, onBack }: SpaceGameProps) {
     }
     setNextAsteroidId((prev) => prev + 1)
     setAsteroids((prev) => [...prev, newAsteroid])
-  }, [stage.content, nextAsteroidId])
+  }, [practiceContent, nextAsteroidId])
 
   useEffect(() => {
     if (!isPlaying || isComplete) return
@@ -112,15 +112,11 @@ export function SpaceGame({ stage, userId, userName, onBack }: SpaceGameProps) {
 
   useEffect(() => {
     if (!isPlaying || isComplete) return
-
-    const spawnInterval = setInterval(() => {
-      if (asteroids.length < 4) {
-        spawnAsteroid()
-      }
-    }, 1500 / speedMultiplier)
-
-    return () => clearInterval(spawnInterval)
-  }, [isPlaying, isComplete, asteroids.length, spawnAsteroid, speedMultiplier])
+    // 保证场上至少有1个目标
+    if (asteroids.length === 0) {
+      spawnAsteroid()
+    }
+  }, [isPlaying, isComplete, asteroids.length, spawnAsteroid])
 
   const handleStart = () => {
     setIsPlaying(true)
@@ -139,26 +135,25 @@ export function SpaceGame({ stage, userId, userName, onBack }: SpaceGameProps) {
 
     const audioManager = getAudioManager()
 
-    const matchingAsteroid = asteroids.find((a) => a.word.startsWith(value))
-    if (matchingAsteroid) {
-      if (value === matchingAsteroid.word) {
-        audioManager.playSuccess()
-        setScore((prev) => prev + matchingAsteroid.word.length * 15)
-        setTotalTyped((prev) => prev + matchingAsteroid.word.length)
+    // 查找与输入完全匹配的陨石
+    const matchedAsteroid = asteroids.find((a) => value === a.word)
+    if (matchedAsteroid) {
+      audioManager.playSuccess()
+      setScore((prev) => prev + matchedAsteroid.word.length * 15)
+      setTotalTyped((prev) => prev + matchedAsteroid.word.length)
 
-        const newExplosion: Explosion = {
-          id: Date.now(),
-          x: matchingAsteroid.x,
-          y: matchingAsteroid.y,
-        }
-        setExplosions((prev) => [...prev, newExplosion])
-        setTimeout(() => {
-          setExplosions((prev) => prev.filter((e) => e.id !== newExplosion.id))
-        }, 600)
-
-        setAsteroids((prev) => prev.filter((a) => a.id !== matchingAsteroid.id))
-        setInput("")
+      const newExplosion: Explosion = {
+        id: Date.now(),
+        x: matchedAsteroid.x,
+        y: matchedAsteroid.y,
       }
+      setExplosions((prev) => [...prev, newExplosion])
+      setTimeout(() => {
+        setExplosions((prev) => prev.filter((e) => e.id !== newExplosion.id))
+      }, 600)
+
+      setAsteroids((prev) => prev.filter((a) => a.id !== matchedAsteroid.id))
+      setInput("")
     } else if (value.length > 0) {
       audioManager.playError()
       setErrors((prev) => prev + 1)

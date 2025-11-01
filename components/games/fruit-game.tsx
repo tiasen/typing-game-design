@@ -59,7 +59,7 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
     }
     setNextFruitId((prev) => prev + 1)
     setFruits((prev) => [...prev, newFruit])
-  }, [stage.content, nextFruitId])
+  }, [practiceContent, nextFruitId])
 
   useEffect(() => {
     if (!isPlaying || isComplete) return
@@ -111,15 +111,11 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
 
   useEffect(() => {
     if (!isPlaying || isComplete) return
-
-    const spawnInterval = setInterval(() => {
-      if (fruits.length < 5) {
-        spawnFruit()
-      }
-    }, 1200 / speedMultiplier)
-
-    return () => clearInterval(spawnInterval)
-  }, [isPlaying, isComplete, fruits.length, spawnFruit, speedMultiplier])
+    // 保证场上至少有1个目标
+    if (fruits.length === 0) {
+      spawnFruit()
+    }
+  }, [isPlaying, isComplete, fruits.length, spawnFruit])
 
   const handleStart = () => {
     setIsPlaying(true)
@@ -139,21 +135,20 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
 
     const audioManager = getAudioManager()
 
-    const matchingFruit = fruits.find((f) => f.word.startsWith(value))
-    if (matchingFruit) {
-      if (value === matchingFruit.word) {
-        audioManager.playSuccess()
-        setScore((prev) => prev + matchingFruit.word.length * 12)
-        setTotalTyped((prev) => prev + matchingFruit.word.length)
+    // 查找与输入完全匹配的目标
+    const matchedFruit = fruits.find((f) => value === f.word)
+    if (matchedFruit) {
+      audioManager.playSuccess()
+      setScore((prev) => prev + matchedFruit.word.length * 12)
+      setTotalTyped((prev) => prev + matchedFruit.word.length)
 
-        setSlicedFruits((prev) => [...prev, { id: matchingFruit.id, x: matchingFruit.x, y: matchingFruit.y }])
-        setTimeout(() => {
-          setSlicedFruits((prev) => prev.filter((f) => f.id !== matchingFruit.id))
-        }, 800)
+      setSlicedFruits((prev) => [...prev, { id: matchedFruit.id, x: matchedFruit.x, y: matchedFruit.y }])
+      setTimeout(() => {
+        setSlicedFruits((prev) => prev.filter((f) => f.id !== matchedFruit.id))
+      }, 800)
 
-        setFruits((prev) => prev.filter((f) => f.id !== matchingFruit.id))
-        setInput("")
-      }
+      setFruits((prev) => prev.filter((f) => f.id !== matchedFruit.id))
+      setInput("")
     } else if (value.length > 0) {
       audioManager.playError()
       setErrors((prev) => prev + 1)
