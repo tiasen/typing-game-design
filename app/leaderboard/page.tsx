@@ -6,7 +6,25 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
+
 export default async function LeaderboardPage() {
+  // 服务端无法用 useLanguage，直接 fallback 英文文本
+  const t = (key: string) => {
+    const dict: Record<string, string> = {
+      leaderboardTitle: "Leaderboard",
+      leaderboardDesc: "Top players and your history",
+      top10Players: "Top 10 players",
+      noScoresYet: "No scores yet. Be the first!",
+      yourGameHistory: "Your Game History",
+      recent20Games: "Recent 20 games",
+      noGamesPlayedYet: "No games played yet",
+      startPlaying: "Start Playing",
+      backToDashboard: "Back to Dashboard",
+      globalRankings: "Global Rankings",
+      myHistory: "My History",
+    };
+    return dict[key] || key;
+  };
   const supabase = await createClient()
 
   const {
@@ -48,20 +66,20 @@ export default async function LeaderboardPage() {
     .limit(20)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100">
+  <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100">
       {/* Header */}
       <header className="bg-card/80 backdrop-blur-sm border-b-4 border-primary/20 shadow-lg">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="text-4xl">🏆</div>
             <div>
-              <h1 className="text-2xl font-bold text-primary">Leaderboard</h1>
-              <p className="text-sm text-muted-foreground">Top players and your history</p>
+              <h1 className="text-2xl font-bold text-primary">{t("leaderboardTitle")}</h1>
+              <p className="text-sm text-muted-foreground">{t("leaderboardDesc")}</p>
             </div>
           </div>
           <Link href="/dashboard">
             <Button variant="outline" className="rounded-full border-2 bg-transparent">
-              Back to Dashboard
+              {t("backToDashboard")}
             </Button>
           </Link>
         </div>
@@ -71,10 +89,10 @@ export default async function LeaderboardPage() {
         <Tabs defaultValue="global" className="space-y-6">
           <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 h-12 rounded-2xl">
             <TabsTrigger value="global" className="rounded-xl text-base">
-              Global Rankings
+              {t("globalRankings")}
             </TabsTrigger>
             <TabsTrigger value="history" className="rounded-xl text-base">
-              My History
+              {t("myHistory")}
             </TabsTrigger>
           </TabsList>
 
@@ -84,13 +102,13 @@ export default async function LeaderboardPage() {
                 <CardHeader>
                   <CardTitle className="text-2xl flex items-center gap-3">
                     <span className="text-3xl">{stage.icon}</span>
-                    {stage.title}
+                    {t(stage.title)}
                   </CardTitle>
-                  <CardDescription className="text-base">Top 10 players</CardDescription>
+                  <CardDescription className="text-base">{t("top10Players")}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {scores.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8">No scores yet. Be the first!</p>
+                    <p className="text-center text-muted-foreground py-8">{t("noScoresYet")}</p>
                   ) : (
                     <div className="space-y-3">
                       {scores.map((score, index) => (
@@ -151,19 +169,19 @@ export default async function LeaderboardPage() {
           <TabsContent value="history" className="space-y-6">
             <Card className="border-4 border-accent/20 shadow-xl rounded-3xl">
               <CardHeader>
-                <CardTitle className="text-2xl flex items-center gap-3">
-                  <span className="text-3xl">📊</span>
-                  Your Game History
-                </CardTitle>
-                <CardDescription className="text-base">Recent 20 games</CardDescription>
+                  <CardTitle className="text-2xl flex items-center gap-3">
+                    <span className="text-3xl">📊</span>
+                    {t("yourGameHistory")}
+                  </CardTitle>
+                  <CardDescription className="text-base">{t("recent20Games")}</CardDescription>
               </CardHeader>
               <CardContent>
                 {!userHistory || userHistory.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="text-6xl mb-4">🎮</div>
-                    <p className="text-xl text-muted-foreground mb-4">No games played yet</p>
+                    <p className="text-xl text-muted-foreground mb-4">{t("noGamesPlayedYet")}</p>
                     <Link href="/dashboard">
-                      <Button className="rounded-2xl shadow-lg">Start Playing</Button>
+                      <Button className="rounded-2xl shadow-lg">{t("startPlaying")}</Button>
                     </Link>
                   </div>
                 ) : (

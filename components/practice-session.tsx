@@ -218,8 +218,8 @@ export function PracticeSession({ stage, userId }: PracticeSessionProps) {
               </Button>
             </Link>
             <div>
-              <h1 className="text-xl font-bold text-primary">{stage.title}</h1>
-              <p className="text-sm text-muted-foreground">{stage.description}</p>
+              <h1 className="text-xl font-bold text-primary">{t(stage.title)}</h1>
+              <p className="text-sm text-muted-foreground">{t(stage.description)}</p>
             </div>
           </div>
           <div className="text-2xl">{stage.icon}</div>

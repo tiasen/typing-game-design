@@ -2,6 +2,22 @@ export type Language = "en" | "zh";
 
 export const translations = {
   en: {
+  // General
+  loading: "Loading...",
+
+  // Practice Page
+  practiceHeader: "Practice Mode",
+  practiceDesc: "Sharpen your typing skills in this stage.",
+
+  // Leaderboard Page
+  leaderboardTitle: "Leaderboard",
+  leaderboardDesc: "Top players and your history",
+  top10Players: "Top 10 players",
+  noScoresYet: "No scores yet. Be the first!",
+  yourGameHistory: "Your Game History",
+  recent20Games: "Recent 20 games",
+  noGamesPlayedYet: "No games played yet",
+  startPlaying: "Start Playing",
     stage0Title: "Beginner (Single Key)",
     stage0Desc: "Practice one letter or number at a time",
     // Landing Page
@@ -182,6 +198,22 @@ export const translations = {
     resetData: "Reset All Data",
   },
   zh: {
+  // General
+  loading: "加载中...",
+
+  // Practice Page
+  practiceHeader: "练习模式",
+  practiceDesc: "在本关提升你的打字技能。",
+
+  // Leaderboard Page
+  leaderboardTitle: "排行榜",
+  leaderboardDesc: "顶尖玩家与您的历史记录",
+  top10Players: "前10名玩家",
+  noScoresYet: "暂无成绩，快来挑战！",
+  yourGameHistory: "你的游戏历史",
+  recent20Games: "最近20场游戏",
+  noGamesPlayedYet: "还没有游戏记录",
+  startPlaying: "开始游戏",
     stage0Title: "萌新阶段（单键）",
     stage0Desc: "每次只练习一个字母或数字",
     // Landing Page

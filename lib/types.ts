@@ -43,8 +43,8 @@ export interface Stage {
 export const STAGES: Stage[] = [
   {
     id: 0,
-    title: "Beginner (Single Key)",
-    description: "Practice one letter or number at a time",
+    title: "stage0Title",
+    description: "stage0Desc",
     icon: "🐣",
     content: [],
     targetWpm: 5,
@@ -52,8 +52,8 @@ export const STAGES: Stage[] = [
   },
   {
     id: 1,
-    title: "Home Row (ASDF)",
-    description: "Practice the home row keys: ASDF JKL;",
+    title: "stage1Title",
+    description: "stage1Desc",
     icon: "⌨️",
     content: [],
     targetWpm: 10,
@@ -61,8 +61,8 @@ export const STAGES: Stage[] = [
   },
   {
     id: 2,
-    title: "Top Row (QWER)",
-    description: "Practice the top row keys: QWER UIOP",
+    title: "stage2Title",
+    description: "stage2Desc",
     icon: "⬆️",
     content: [],
     targetWpm: 10,
@@ -70,8 +70,8 @@ export const STAGES: Stage[] = [
   },
   {
     id: 3,
-    title: "Bottom Row (ZXCV)",
-    description: "Practice the bottom row keys: ZXCV M,./",
+    title: "stage3Title",
+    description: "stage3Desc",
     icon: "⬇️",
     content: [],
     targetWpm: 10,
@@ -79,8 +79,8 @@ export const STAGES: Stage[] = [
   },
   {
     id: 4,
-    title: "Number Row",
-    description: "Practice the number row: 1234567890",
+    title: "stage4Title",
+    description: "stage4Desc",
     icon: "🔢",
     content: [],
     targetWpm: 10,
@@ -88,8 +88,8 @@ export const STAGES: Stage[] = [
   },
   {
     id: 5,
-    title: "All Letters",
-    description: "Practice the entire alphabet",
+    title: "stage6Title",
+    description: "stage6Desc",
     icon: "🔤",
     content: [], // Will be populated dynamically
     targetWpm: 25,
@@ -97,8 +97,8 @@ export const STAGES: Stage[] = [
   },
   {
     id: 6,
-    title: "Simple Words",
-    description: "Type common words",
+    title: "stage7Title",
+    description: "stage7Desc",
     icon: "📝",
     content: [], // Will be populated dynamically
     targetWpm: 35,
@@ -106,8 +106,8 @@ export const STAGES: Stage[] = [
   },
   {
     id: 7,
-    title: "Sentences",
-    description: "Practice full sentences",
+    title: "stage8Title",
+    description: "stage8Desc",
     icon: "📖",
     content: [], // Will be populated dynamically
     targetWpm: 45,
@@ -115,8 +115,8 @@ export const STAGES: Stage[] = [
   },
   {
     id: 8,
-    title: "Speed Challenge",
-    description: "Master your typing speed",
+    title: "stage9Title",
+    description: "stage9Desc",
     icon: "⚡",
     content: [], // Will be populated dynamically
     targetWpm: 60,
