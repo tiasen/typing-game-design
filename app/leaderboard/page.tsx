@@ -1,29 +1,33 @@
+
 import { redirect } from "next/navigation"
+import { cookies, headers } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
 import { STAGES } from "@/lib/types"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { getTranslation, type Language } from "@/lib/i18n"
 
 
 export default async function LeaderboardPage() {
-  // 服务端无法用 useLanguage，直接 fallback 英文文本
-  const t = (key: string) => {
-    const dict: Record<string, string> = {
-      leaderboardTitle: "Leaderboard",
-      leaderboardDesc: "Top players and your history",
-      top10Players: "Top 10 players",
-      noScoresYet: "No scores yet. Be the first!",
-      yourGameHistory: "Your Game History",
-      recent20Games: "Recent 20 games",
-      noGamesPlayedYet: "No games played yet",
-      startPlaying: "Start Playing",
-      backToDashboard: "Back to Dashboard",
-      globalRankings: "Global Rankings",
-      myHistory: "My History",
-    };
-    return dict[key] || key;
+  // ...existing code...
+  // 读取 cookie 里的 language，默认 en
+  const cookieStore = await cookies();
+  let lang = cookieStore.get("language")?.value as Language | undefined;
+  if (!lang) {
+    // 从 accept-language 解析
+    const acceptLang = (await headers()).get("accept-language") || "en";
+    lang = acceptLang.split(",")[0].split("-")[0] as Language;
+    if (lang !== "en" && lang !== "zh") lang = "en";
+  }
+  const t = (key: any) => getTranslation(lang, key);
+  // 游戏类型到游戏名的映射（放在 t 定义后）
+  const GAME_TYPE_NAME_MAP: Record<string, string> = {
+    fruit: "fruitNinja",
+    monster: "monsterTyping",
+    space: "spaceTyping",
+    // 你可以根据实际情况添加更多类型
   };
   const supabase = await createClient()
 
@@ -66,7 +70,7 @@ export default async function LeaderboardPage() {
     .limit(20)
 
   return (
-  <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100">
+    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100">
       {/* Header */}
       <header className="bg-card/80 backdrop-blur-sm border-b-4 border-primary/20 shadow-lg">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
@@ -130,15 +134,15 @@ export default async function LeaderboardPage() {
                           {/* Player Info */}
                           <div className="flex-1 min-w-0">
                             <p className="font-bold text-foreground truncate">
-                              {score.profiles?.display_name || "Anonymous"}
+                              {score.profiles?.display_name || t("anonymous")}
                               {score.user_id === user.id && (
                                 <span className="ml-2 text-xs bg-primary text-primary-foreground px-2 py-1 rounded-full">
-                                  You
+                                  {t("you")}
                                 </span>
                               )}
                             </p>
                             <p className="text-sm text-muted-foreground">
-                              {score.game_type.charAt(0).toUpperCase() + score.game_type.slice(1)} Game
+                              {t(score.game_type)} {t("game")}
                             </p>
                           </div>
 
@@ -187,7 +191,9 @@ export default async function LeaderboardPage() {
                 ) : (
                   <div className="space-y-3">
                     {userHistory.map((score) => {
-                      const stage = STAGES.find((s) => s.id === score.stage_id)
+                      const stage = STAGES.find((s) => s.id === score.stage_id);
+                      // 用映射表获取游戏名，没有则用 game_type
+                      const gameName = GAME_TYPE_NAME_MAP[score.game_type] ;
                       return (
                         <div
                           key={score.id}
@@ -198,11 +204,11 @@ export default async function LeaderboardPage() {
 
                           {/* Game Info */}
                           <div className="flex-1 min-w-0">
-                            <p className="font-bold text-foreground">{stage?.title || "Unknown Stage"}</p>
+                            <p className="font-bold text-foreground">{stage ? t(stage.title) : t("unknownStage")}</p>
                             <p className="text-sm text-muted-foreground">
-                              {score.game_type.charAt(0).toUpperCase() + score.game_type.slice(1)} Game •{" "}
-                              {new Date(score.created_at).toLocaleDateString()} at{" "}
-                              {new Date(score.created_at).toLocaleTimeString([], {
+                              {/* 新增显示游戏名 */}
+                              <span className="font-medium text-primary mr-2">{t(gameName)}</span>
+                               • {new Date(score.created_at).toLocaleDateString()} {t("at")} {new Date(score.created_at).toLocaleTimeString([], {
                                 hour: "2-digit",
                                 minute: "2-digit",
                               })}
@@ -212,15 +218,15 @@ export default async function LeaderboardPage() {
                           {/* Stats */}
                           <div className="flex gap-6 text-right">
                             <div>
-                              <p className="text-xs text-muted-foreground">Score</p>
+                              <p className="text-xs text-muted-foreground">{t("score")}</p>
                               <p className="text-lg font-bold text-primary">{score.score}</p>
                             </div>
                             <div>
-                              <p className="text-xs text-muted-foreground">WPM</p>
+                              <p className="text-xs text-muted-foreground">{t("wpm")}</p>
                               <p className="text-lg font-bold text-accent">{score.wpm}</p>
                             </div>
                             <div>
-                              <p className="text-xs text-muted-foreground">Accuracy</p>
+                              <p className="text-xs text-muted-foreground">{t("accuracy")}</p>
                               <p className="text-lg font-bold text-secondary">{score.accuracy}%</p>
                             </div>
                           </div>
@@ -238,27 +244,27 @@ export default async function LeaderboardPage() {
                 <CardHeader>
                   <CardTitle className="text-2xl flex items-center gap-3">
                     <span className="text-3xl">📈</span>
-                    Your Statistics
+                    {t("myStats")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div className="text-center p-4 bg-primary/10 rounded-2xl">
-                      <p className="text-sm text-muted-foreground mb-1">Total Games</p>
+                      <p className="text-sm text-muted-foreground mb-1">{t("totalGames")}</p>
                       <p className="text-3xl font-bold text-primary">{userHistory.length}</p>
                     </div>
                     <div className="text-center p-4 bg-accent/10 rounded-2xl">
-                      <p className="text-sm text-muted-foreground mb-1">Best WPM</p>
+                      <p className="text-sm text-muted-foreground mb-1">{t("bestWPM")}</p>
                       <p className="text-3xl font-bold text-accent">{Math.max(...userHistory.map((s) => s.wpm))}</p>
                     </div>
                     <div className="text-center p-4 bg-secondary/10 rounded-2xl">
-                      <p className="text-sm text-muted-foreground mb-1">Avg Accuracy</p>
+                      <p className="text-sm text-muted-foreground mb-1">{t("avgAccuracy")}</p>
                       <p className="text-3xl font-bold text-secondary">
                         {Math.round(userHistory.reduce((sum, s) => sum + s.accuracy, 0) / userHistory.length)}%
                       </p>
                     </div>
                     <div className="text-center p-4 bg-muted/30 rounded-2xl">
-                      <p className="text-sm text-muted-foreground mb-1">Total Score</p>
+                      <p className="text-sm text-muted-foreground mb-1">{t("totalScore")}</p>
                       <p className="text-3xl font-bold text-foreground">
                         {userHistory.reduce((sum, s) => sum + s.score, 0)}
                       </p>
@@ -269,7 +275,7 @@ export default async function LeaderboardPage() {
             )}
           </TabsContent>
         </Tabs>
-      </main>
+  </main>
     </div>
-  )
+  );
 }

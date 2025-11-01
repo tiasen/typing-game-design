@@ -2,6 +2,10 @@ export type Language = "en" | "zh";
 
 export const translations = {
   en: {
+    anonymous: "Anonymous",
+    you: "You",
+    unknownStage: "Unknown Stage",
+    at: "at",
   // General
   loading: "Loading...",
 
@@ -198,6 +202,10 @@ export const translations = {
     resetData: "Reset All Data",
   },
   zh: {
+    anonymous: "匿名",
+    you: "你",
+    unknownStage: "未知关卡",
+    at: "在",
   // General
   loading: "加载中...",
 
