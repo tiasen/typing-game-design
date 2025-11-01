@@ -252,7 +252,19 @@ export function PracticeSession({ stage, userId }: PracticeSessionProps) {
               <CardContent className="space-y-8">
                 {/* Text to type */}
                 <div className="bg-muted/30 rounded-2xl p-8 text-center">
-                  <p className="text-4xl font-mono tracking-wide text-foreground">{currentText}</p>
+                  <p className="text-4xl font-mono tracking-wide">
+                    {currentText.split("").map((char, idx) => {
+                      let color = "text-foreground"
+                      if (input.length > idx) {
+                        color = input[idx] === char ? "text-green-500" : "text-red-500"
+                      }
+                      return (
+                        <span key={idx} className={color}>
+                          {char}
+                        </span>
+                      )
+                    })}
+                  </p>
                 </div>
 
                 {/* Input field */}
