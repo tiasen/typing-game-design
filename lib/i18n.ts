@@ -1,5 +1,4 @@
-
-export type Language = "en" | "zh"
+export type Language = "en" | "zh";
 
 export const translations = {
   en: {
@@ -60,24 +59,24 @@ export const translations = {
     signOut: "Sign Out",
 
     // Stages
-  stage1Title: "Home Row (ASDF)",
-  stage1Desc: "Practice the home row keys: ASDF JKL;",
-  stage2Title: "Top Row (QWER)",
-  stage2Desc: "Practice the top row keys: QWER UIOP",
-  stage3Title: "Bottom Row (ZXCV)",
-  stage3Desc: "Practice the bottom row keys: ZXCV M,./",
-  stage4Title: "Number Row",
-  stage4Desc: "Practice the number row: 1234567890",
-  stage5Title: "Home Row Keys",
-  stage5Desc: "Learn the basic finger positions",
-  stage6Title: "All Letters",
-  stage6Desc: "Practice A-Z",
-  stage7Title: "Simple Words",
-  stage7Desc: "Type common words",
-  stage8Title: "Sentences",
-  stage8Desc: "Practice full sentences",
-  stage9Title: "Speed Challenge",
-  stage9Desc: "Master your speed",
+    stage1Title: "Home Row (ASDF)",
+    stage1Desc: "Practice the home row keys: ASDF JKL;",
+    stage2Title: "Top Row (QWER)",
+    stage2Desc: "Practice the top row keys: QWER UIOP",
+    stage3Title: "Bottom Row (ZXCV)",
+    stage3Desc: "Practice the bottom row keys: ZXCV M,./",
+    stage4Title: "Number Row",
+    stage4Desc: "Practice the number row: 1234567890",
+    stage5Title: "Home Row Keys",
+    stage5Desc: "Learn the basic finger positions",
+    stage6Title: "All Letters",
+    stage6Desc: "Practice A-Z",
+    stage7Title: "Simple Words",
+    stage7Desc: "Type common words",
+    stage8Title: "Sentences",
+    stage8Desc: "Practice full sentences",
+    stage9Title: "Speed Challenge",
+    stage9Desc: "Master your speed",
 
     // Practice
     typeTextBelow: "Type the text below",
@@ -102,9 +101,12 @@ export const translations = {
     fruitDesc: "Slice fruits by typing fast!",
     playNow: "Play Now",
     howToPlay: "How to Play:",
-    monsterInstructions: "Type the words on monsters to defeat them before they reach you!",
-    spaceInstructions: "Type the words on asteroids to destroy them before they hit Earth!",
-    fruitInstructions: "Type the words on fruits to slice them before they fall!",
+    monsterInstructions:
+      "Type the words on monsters to defeat them before they reach you!",
+    spaceInstructions:
+      "Type the words on asteroids to destroy them before they hit Earth!",
+    fruitInstructions:
+      "Type the words on fruits to slice them before they fall!",
     startGame: "Start Game",
     launchMission: "Launch Mission",
     startSlicing: "Start Slicing",
@@ -174,6 +176,10 @@ export const translations = {
     rightRing: "Right Ring",
     rightPinky: "Right Pinky",
     thumb: "Thumb",
+    resetConfirm:
+      "Are you sure you want to reset all your progress? This action cannot be undone.",
+    resetSuccess: "All progress has been reset.",
+    resetData: "Reset All Data",
   },
   zh: {
     stage0Title: "萌新阶段（单键）",
@@ -210,7 +216,8 @@ export const translations = {
     alreadyHaveAccount: "已有账号？",
     dontHaveAccount: "还没有账号？",
     checkEmail: "查看你的邮箱！",
-    confirmationSent: "我们已向你发送确认邮件。请检查收件箱并点击链接激活你的账号。",
+    confirmationSent:
+      "我们已向你发送确认邮件。请检查收件箱并点击链接激活你的账号。",
     backToLogin: "返回登录",
 
     // Dashboard
@@ -232,24 +239,24 @@ export const translations = {
     signOut: "退出登录",
 
     // Stages
-  stage1Title: "基础行 (ASDF)",
-  stage1Desc: "练习基础行按键：ASDF JKL;",
-  stage2Title: "上排 (QWER)",
-  stage2Desc: "练习上排按键：QWER UIOP",
-  stage3Title: "下排 (ZXCV)",
-  stage3Desc: "练习下排按键：ZXCV M,./",
-  stage4Title: "数字行",
-  stage4Desc: "练习数字行：1234567890",
-  stage5Title: "基础键位",
-  stage5Desc: "学习 ASDF JKL; 键位和指法",
-  stage6Title: "所有字母",
-  stage6Desc: "练习 A-Z",
-  stage7Title: "简单单词",
-  stage7Desc: "输入常用单词",
-  stage8Title: "句子练习",
-  stage8Desc: "练习完整句子",
-  stage9Title: "速度挑战",
-  stage9Desc: "掌握你的速度",
+    stage1Title: "基础行 (ASDF)",
+    stage1Desc: "练习基础行按键：ASDF JKL;",
+    stage2Title: "上排 (QWER)",
+    stage2Desc: "练习上排按键：QWER UIOP",
+    stage3Title: "下排 (ZXCV)",
+    stage3Desc: "练习下排按键：ZXCV M,./",
+    stage4Title: "数字行",
+    stage4Desc: "练习数字行：1234567890",
+    stage5Title: "基础键位",
+    stage5Desc: "学习 ASDF JKL; 键位和指法",
+    stage6Title: "所有字母",
+    stage6Desc: "练习 A-Z",
+    stage7Title: "简单单词",
+    stage7Desc: "输入常用单词",
+    stage8Title: "句子练习",
+    stage8Desc: "练习完整句子",
+    stage9Title: "速度挑战",
+    stage9Desc: "掌握你的速度",
 
     // Practice
     typeTextBelow: "输入下面的文字",
@@ -346,9 +353,15 @@ export const translations = {
     rightRing: "右手无名指",
     rightPinky: "右手小指",
     thumb: "拇指",
+    resetConfirm: "你确定要重置所有进度吗？此操作无法撤销。",
+    resetSuccess: "所有进度已重置。",
+    resetData: "重置所有数据",
   },
-}
+};
 
-export function getTranslation(lang: Language, key: keyof typeof translations.en): string {
-  return translations[lang][key] || translations.en[key]
+export function getTranslation(
+  lang: Language,
+  key: keyof typeof translations.en
+): string {
+  return translations[lang][key] || translations.en[key];
 }

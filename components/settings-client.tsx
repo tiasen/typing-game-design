@@ -1,105 +1,132 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import Link from "next/link"
-import { getAudioManager } from "@/lib/audio"
-import type { Profile } from "@/lib/types"
-import type { User } from "@supabase/supabase-js"
-import { useLanguage } from "@/lib/language-context"
-import { useGuest } from "@/lib/guest-context"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import Link from "next/link";
+import { getAudioManager } from "@/lib/audio";
+import type { Profile } from "@/lib/types";
+import type { User } from "@supabase/supabase-js";
+import { useLanguage } from "@/lib/language-context";
+import { useGuest } from "@/lib/guest-context";
 
-const AVATAR_COLORS = ["#FF6B9D", "#FFD93D", "#6BCF7F", "#4ECDC4", "#A78BFA", "#FB923C"]
+const AVATAR_COLORS = [
+  "#FF6B9D",
+  "#FFD93D",
+  "#6BCF7F",
+  "#4ECDC4",
+  "#A78BFA",
+  "#FB923C",
+];
 
 interface SettingsClientProps {
-  user: User
-  profile: Profile | null
+  user: User;
+  profile: Profile | null;
 }
 
 export function SettingsClient({ user, profile }: SettingsClientProps) {
-  const { t, language, setLanguage, gameSpeed, setGameSpeed } = useLanguage()
-  const router = useRouter()
-  const [displayName, setDisplayName] = useState(profile?.display_name || "")
-  const [selectedColor, setSelectedColor] = useState(profile?.avatar_color || AVATAR_COLORS[0])
-  const [soundEnabled, setSoundEnabled] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-  const [saveMessage, setSaveMessage] = useState("")
+  const { t, language, setLanguage, gameSpeed, setGameSpeed } = useLanguage();
+  const router = useRouter();
+  const [displayName, setDisplayName] = useState(profile?.display_name || "");
+  const [selectedColor, setSelectedColor] = useState(
+    profile?.avatar_color || AVATAR_COLORS[0]
+  );
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
 
   useEffect(() => {
-    const audioManager = getAudioManager()
-    setSoundEnabled(audioManager.isEnabled())
-  }, [])
+    const audioManager = getAudioManager();
+    setSoundEnabled(audioManager.isEnabled());
+  }, []);
 
   const handleSoundToggle = (enabled: boolean) => {
-    setSoundEnabled(enabled)
-    const audioManager = getAudioManager()
-    audioManager.setEnabled(enabled)
+    setSoundEnabled(enabled);
+    const audioManager = getAudioManager();
+    audioManager.setEnabled(enabled);
 
     if (enabled) {
-      audioManager.playSuccess()
+      audioManager.playSuccess();
     }
-  }
+  };
 
   const handleTestSound = () => {
-    const audioManager = getAudioManager()
-    audioManager.playKeyPress()
-    setTimeout(() => audioManager.playSuccess(), 200)
-    setTimeout(() => audioManager.playComplete(), 400)
-  }
+    const audioManager = getAudioManager();
+    audioManager.playKeyPress();
+    setTimeout(() => audioManager.playSuccess(), 200);
+    setTimeout(() => audioManager.playComplete(), 400);
+  };
+
+  const { clearGuestData } = useGuest();
+  // 清除注册用户所有进度（国际化）
+  const handleResetAllData = async () => {
+    if (!window.confirm(t("resetConfirm"))) return;
+    clearGuestData();
+    if (user?.id) {
+      const supabase = createClient();
+      await supabase.from("learning_progress").delete().eq("user_id", user.id);
+      // 可选：如需清除 profile 统计等，也可在此扩展
+    }
+    router.refresh();
+    alert(t("resetSuccess"));
+  };
 
   const handleSaveProfile = async () => {
-    setIsSaving(true)
-    setSaveMessage("")
+    setIsSaving(true);
+    setSaveMessage("");
 
     try {
-      const supabase = createClient()
+      const supabase = createClient();
       const { error } = await supabase
         .from("profiles")
         .update({
           display_name: displayName,
           avatar_color: selectedColor,
         })
-        .eq("id", user.id)
+        .eq("id", user.id);
 
-      if (error) throw error
+      if (error) throw error;
 
-      setSaveMessage("Profile updated successfully!")
-      const audioManager = getAudioManager()
-      audioManager.playSuccess()
+      setSaveMessage("Profile updated successfully!");
+      const audioManager = getAudioManager();
+      audioManager.playSuccess();
 
       setTimeout(() => {
-        router.refresh()
-      }, 1000)
+        router.refresh();
+      }, 1000);
     } catch (error) {
-      setSaveMessage("Failed to update profile")
-      const audioManager = getAudioManager()
-      audioManager.playError()
+      setSaveMessage("Failed to update profile");
+      const audioManager = getAudioManager();
+      audioManager.playError();
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
-
-  const { clearGuestData } = useGuest()
+  };
 
   const handleSignOut = async () => {
-    const supabase = createClient()
+    const supabase = createClient();
 
-    clearGuestData()
+    // clearGuestData();
 
-    const { error } = await supabase.auth.signOut()
+    const { error } = await supabase.auth.signOut();
 
     if (error) {
-      console.error("Sign out error:", error)
+      console.error("Sign out error:", error);
     }
 
-    window.location.href = "/"
-  }
+    window.location.href = "/";
+  };
 
   return (
     <>
@@ -109,12 +136,19 @@ export function SettingsClient({ user, profile }: SettingsClientProps) {
           <div className="flex items-center gap-4">
             <div className="text-4xl">⚙️</div>
             <div>
-              <h1 className="text-2xl font-bold text-primary">{t("settings")}</h1>
-              <p className="text-sm text-muted-foreground">Customize your experience</p>
+              <h1 className="text-2xl font-bold text-primary">
+                {t("settings")}
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Customize your experience
+              </p>
             </div>
           </div>
           <Link href="/dashboard">
-            <Button variant="outline" className="rounded-full border-2 bg-transparent">
+            <Button
+              variant="outline"
+              className="rounded-full border-2 bg-transparent"
+            >
               {t("backToDashboard")}
             </Button>
           </Link>
@@ -130,11 +164,16 @@ export function SettingsClient({ user, profile }: SettingsClientProps) {
                 <span className="text-3xl">👤</span>
                 {t("profile")}
               </CardTitle>
-              <CardDescription className="text-base">Update your display name and avatar color</CardDescription>
+              <CardDescription className="text-base">
+                Update your display name and avatar color
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="displayName" className="text-base font-semibold">
+                <Label
+                  htmlFor="displayName"
+                  className="text-base font-semibold"
+                >
                   {t("displayName")}
                 </Label>
                 <Input
@@ -148,7 +187,9 @@ export function SettingsClient({ user, profile }: SettingsClientProps) {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-base font-semibold">{t("chooseColor")}</Label>
+                <Label className="text-base font-semibold">
+                  {t("chooseColor")}
+                </Label>
                 <div className="flex gap-3 flex-wrap">
                   {AVATAR_COLORS.map((color) => (
                     <button
@@ -156,7 +197,9 @@ export function SettingsClient({ user, profile }: SettingsClientProps) {
                       type="button"
                       onClick={() => setSelectedColor(color)}
                       className={`w-14 h-14 rounded-full transition-transform hover:scale-110 ${
-                        selectedColor === color ? "ring-4 ring-foreground scale-110" : ""
+                        selectedColor === color
+                          ? "ring-4 ring-foreground scale-110"
+                          : ""
                       }`}
                       style={{ backgroundColor: color }}
                     />
@@ -193,17 +236,28 @@ export function SettingsClient({ user, profile }: SettingsClientProps) {
                 <span className="text-3xl">🔊</span>
                 {t("audio")}
               </CardTitle>
-              <CardDescription className="text-base">Control sound effects and audio feedback</CardDescription>
+              <CardDescription className="text-base">
+                Control sound effects and audio feedback
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl">
                 <div className="space-y-1">
-                  <Label htmlFor="sound-toggle" className="text-base font-semibold cursor-pointer">
+                  <Label
+                    htmlFor="sound-toggle"
+                    className="text-base font-semibold cursor-pointer"
+                  >
                     {t("soundEffects")}
                   </Label>
-                  <p className="text-sm text-muted-foreground">Enable typing sounds and game audio</p>
+                  <p className="text-sm text-muted-foreground">
+                    Enable typing sounds and game audio
+                  </p>
                 </div>
-                <Switch id="sound-toggle" checked={soundEnabled} onCheckedChange={handleSoundToggle} />
+                <Switch
+                  id="sound-toggle"
+                  checked={soundEnabled}
+                  onCheckedChange={handleSoundToggle}
+                />
               </div>
 
               <Button
@@ -218,8 +272,9 @@ export function SettingsClient({ user, profile }: SettingsClientProps) {
 
               <div className="bg-muted/20 rounded-2xl p-4">
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Sound effects include typing clicks, success chimes, error beeps, and completion melodies. These
-                  sounds help provide feedback during practice and games.
+                  Sound effects include typing clicks, success chimes, error
+                  beeps, and completion melodies. These sounds help provide
+                  feedback during practice and games.
                 </p>
               </div>
             </CardContent>
@@ -232,11 +287,15 @@ export function SettingsClient({ user, profile }: SettingsClientProps) {
                 <span className="text-3xl">🎮</span>
                 {t("gameplay")}
               </CardTitle>
-              <CardDescription className="text-base">{t("speedDesc")}</CardDescription>
+              <CardDescription className="text-base">
+                {t("speedDesc")}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-base font-semibold">{t("gameSpeed")}</Label>
+                <Label className="text-base font-semibold">
+                  {t("gameSpeed")}
+                </Label>
                 <div className="grid grid-cols-3 gap-3">
                   <Button
                     onClick={() => setGameSpeed("slow")}
@@ -266,9 +325,12 @@ export function SettingsClient({ user, profile }: SettingsClientProps) {
               </div>
               <div className="bg-muted/20 rounded-2xl p-4">
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  {gameSpeed === "slow" && "Slow speed is perfect for beginners learning to type."}
-                  {gameSpeed === "normal" && "Normal speed provides a balanced challenge for most students."}
-                  {gameSpeed === "fast" && "Fast speed is for advanced typists seeking a real challenge!"}
+                  {gameSpeed === "slow" &&
+                    "Slow speed is perfect for beginners learning to type."}
+                  {gameSpeed === "normal" &&
+                    "Normal speed provides a balanced challenge for most students."}
+                  {gameSpeed === "fast" &&
+                    "Fast speed is for advanced typists seeking a real challenge!"}
                 </p>
               </div>
             </CardContent>
@@ -281,7 +343,9 @@ export function SettingsClient({ user, profile }: SettingsClientProps) {
                 <span className="text-3xl">🌐</span>
                 {t("language")}
               </CardTitle>
-              <CardDescription className="text-base">Choose your preferred language</CardDescription>
+              <CardDescription className="text-base">
+                Choose your preferred language
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-3">
@@ -312,13 +376,27 @@ export function SettingsClient({ user, profile }: SettingsClientProps) {
                 <span className="text-3xl">🔐</span>
                 {t("account")}
               </CardTitle>
-              <CardDescription className="text-base">Manage your account settings</CardDescription>
+              <CardDescription className="text-base">
+                Manage your account settings
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="bg-muted/30 rounded-2xl p-4">
-                <p className="text-sm text-muted-foreground mb-1">{t("email")}</p>
-                <p className="text-base font-medium text-foreground">{user.email}</p>
+                <p className="text-sm text-muted-foreground mb-1">
+                  {t("email")}
+                </p>
+                <p className="text-base font-medium text-foreground">
+                  {user.email}
+                </p>
               </div>
+
+              <Button
+                onClick={handleResetAllData}
+                variant="outline"
+                className="w-full h-12 text-lg rounded-2xl border-2 bg-transparent"
+              >
+                🗑 {t("resetData")}
+              </Button>
 
               <Button
                 onClick={handleSignOut}
@@ -341,11 +419,14 @@ export function SettingsClient({ user, profile }: SettingsClientProps) {
             <CardContent>
               <div className="text-center space-y-3">
                 <div className="text-6xl mb-4">⌨️</div>
-                <h3 className="text-xl font-bold text-primary">Type Master Kids</h3>
+                <h3 className="text-xl font-bold text-primary">
+                  Type Master Kids
+                </h3>
                 <p className="text-muted-foreground">{t("version")} 1.0.0</p>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  A fun and engaging typing practice app designed for elementary school students. Learn to type through
-                  progressive stages and exciting games!
+                  A fun and engaging typing practice app designed for elementary
+                  school students. Learn to type through progressive stages and
+                  exciting games!
                 </p>
               </div>
             </CardContent>
@@ -353,5 +434,5 @@ export function SettingsClient({ user, profile }: SettingsClientProps) {
         </div>
       </main>
     </>
-  )
+  );
 }
