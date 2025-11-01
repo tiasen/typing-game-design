@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import type { Stage } from "@/lib/types"
@@ -34,6 +34,7 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
   const { t, gameSpeed } = useLanguage()
   const [fruits, setFruits] = useState<Fruit[]>([])
   const [input, setInput] = useState("")
+  const inputRef = useRef<HTMLInputElement>(null)
   const [score, setScore] = useState(0)
   const [timeLeft, setTimeLeft] = useState(60)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -337,6 +338,7 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
       {/* Input Area */}
       <div className="mt-6">
         <input
+          ref={inputRef}
           type="text"
           value={input}
           onChange={handleInputChange}
@@ -345,6 +347,12 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
           autoFocus
           spellCheck={false}
           autoComplete="off"
+          onBlur={() => {
+            // 延迟，避免和点击按钮等冲突
+            setTimeout(() => {
+              inputRef.current?.focus()
+            }, 100)
+          }}
         />
       </div>
     </div>

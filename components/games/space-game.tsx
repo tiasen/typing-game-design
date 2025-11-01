@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import type { Stage } from "@/lib/types"
@@ -38,6 +38,7 @@ export function SpaceGame({ stage, userId, userName, onBack }: SpaceGameProps) {
   const [asteroids, setAsteroids] = useState<Asteroid[]>([])
   const [explosions, setExplosions] = useState<Explosion[]>([])
   const [input, setInput] = useState("")
+  const inputRef = useRef<HTMLInputElement>(null)
   const [score, setScore] = useState(0)
   const [timeLeft, setTimeLeft] = useState(60)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -367,6 +368,7 @@ export function SpaceGame({ stage, userId, userName, onBack }: SpaceGameProps) {
       {/* Input Area */}
       <div className="mt-6">
         <input
+          ref={inputRef}
           type="text"
           value={input}
           onChange={handleInputChange}
@@ -375,6 +377,11 @@ export function SpaceGame({ stage, userId, userName, onBack }: SpaceGameProps) {
           autoFocus
           spellCheck={false}
           autoComplete="off"
+          onBlur={() => {
+            setTimeout(() => {
+              inputRef.current?.focus()
+            }, 100)
+          }}
         />
       </div>
     </div>

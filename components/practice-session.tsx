@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -36,6 +36,7 @@ export function PracticeSession({ stage, userId }: PracticeSessionProps) {
   const [wpm, setWpm] = useState(0)
   const [accuracy, setAccuracy] = useState(100)
   const [stars, setStars] = useState(0)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const currentText = practiceContent[currentIndex]
   const progress = ((currentIndex + 1) / practiceContent.length) * 100
@@ -257,6 +258,7 @@ export function PracticeSession({ stage, userId }: PracticeSessionProps) {
                 {/* Input field */}
                 <div className="space-y-2">
                   <input
+                    ref={inputRef}
                     type="text"
                     value={input}
                     onChange={handleInputChange}
@@ -266,6 +268,11 @@ export function PracticeSession({ stage, userId }: PracticeSessionProps) {
                     autoFocus
                     spellCheck={false}
                     autoComplete="off"
+                    onBlur={() => {
+                      setTimeout(() => {
+                        inputRef.current?.focus()
+                      }, 100)
+                    }}
                   />
                   <div className="flex justify-between text-sm text-muted-foreground px-2">
                     <span>{t("pressEnter")}</span>

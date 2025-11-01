@@ -18,7 +18,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Type Master Kids - Learn Typing with Fun Games",
   description: "A fun and engaging typing practice app for elementary school students",
-  generator: "v0.app",
 }
 
 export default function RootLayout({
@@ -29,8 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico"/>
         <meta name="robots" content="index, follow" />
   <meta name="keywords" content="typing, kids, games, learn, education, keyboard, practice, elementary, fun, 打字, 儿童, 游戏, 学习, 教育, 键盘, 练习, 小学生, 趣味" />
         <meta name="author" content="Type Master Kids" />
