@@ -49,6 +49,9 @@ export function SpaceGame({ stage, userId, userName, onBack }: SpaceGameProps) {
   const [errors, setErrors] = useState(0)
   const [nextAsteroidId, setNextAsteroidId] = useState(0)
   const [practiceContent] = useState(() => generateStageContent(stage.id))
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const CANVAS_WIDTH = 800
+  const CANVAS_HEIGHT = 500
 
   const spawnAsteroid = useCallback(() => {
     const word = practiceContent[Math.floor(Math.random() * practiceContent.length)]
@@ -85,38 +88,100 @@ export function SpaceGame({ stage, userId, userName, onBack }: SpaceGameProps) {
       case "slow":
         return 0.2 // 80% slower
       case "fast":
-        return 1 // 50% faster
+        return 2 // 50% faster
       default:
-        return 0.5 // normal speed
+        return 0.8 // normal speed
     }
   }
 
   const speedMultiplier = getSpeedMultiplier()
 
+  // Canvas animation loop for asteroid movement and explosions
+  useEffect(() => {
+    let animationId: number
+    let lastTime = performance.now()
+    function animate(now: number) {
+      const dt = Math.min((now - lastTime) / 1000, 0.1)
+      lastTime = now
+      if (isPlaying && !isComplete) {
+        setAsteroids((prev) => {
+          let updated = prev
+            .map((asteroid) => ({
+              ...asteroid,
+              y: asteroid.y + (asteroid.speed * speedMultiplier) / 5,
+            }))
+            .filter((asteroid) => asteroid.y < 100)
+          return updated
+        })
+        setExplosions((prev) => prev)
+      }
+      // Draw
+      const canvas = canvasRef.current
+      if (canvas) {
+        const ctx = canvas.getContext("2d")
+        if (ctx) {
+          // Background
+          ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+          ctx.fillStyle = "#1a1625"
+          ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+          // Stars
+          for (let i = 0; i < 50; i++) {
+            ctx.save()
+            ctx.globalAlpha = 0.7
+            ctx.beginPath()
+            ctx.arc(Math.random() * CANVAS_WIDTH, Math.random() * CANVAS_HEIGHT, 1, 0, 2 * Math.PI)
+            ctx.fillStyle = "#fff"
+            ctx.fill()
+            ctx.restore()
+          }
+          // Asteroids
+          asteroids.forEach((asteroid) => {
+            ctx.save()
+            ctx.translate((asteroid.x / 100) * CANVAS_WIDTH, (asteroid.y / 100) * CANVAS_HEIGHT)
+            ctx.font = "40px serif"
+            ctx.textAlign = "center"
+            ctx.fillText("☄️", 0, 0)
+            ctx.font = "18px monospace"
+            ctx.fillStyle = "#ff9800"
+            ctx.fillText(asteroid.word, 0, 36)
+            ctx.restore()
+          })
+          // Explosions
+          explosions.forEach((explosion) => {
+            ctx.save()
+            ctx.translate((explosion.x / 100) * CANVAS_WIDTH, (explosion.y / 100) * CANVAS_HEIGHT)
+            ctx.font = "48px serif"
+            ctx.fillText("💥", 0, 0)
+            ctx.font = "32px serif"
+            ctx.fillText("🔥", 0, 0)
+            ctx.restore()
+          })
+          // Earth
+          ctx.save()
+          ctx.font = "80px serif"
+          ctx.textAlign = "center"
+          ctx.fillText("🌍", CANVAS_WIDTH / 2, CANVAS_HEIGHT - 20)
+          ctx.restore()
+        }
+      }
+      animationId = requestAnimationFrame(animate)
+    }
+    animationId = requestAnimationFrame(animate)
+    return () => cancelAnimationFrame(animationId)
+  }, [isPlaying, isComplete, speedMultiplier, asteroids, explosions, CANVAS_HEIGHT])
+
   useEffect(() => {
     if (!isPlaying || isComplete) return
-
-    const moveInterval = setInterval(() => {
-      setAsteroids((prev) =>
-        prev
-          .map((asteroid) => ({
-            ...asteroid,
-            y: asteroid.y + asteroid.speed * speedMultiplier,
-          }))
-          .filter((asteroid) => asteroid.y < 100),
-      )
-    }, 50)
-
-    return () => clearInterval(moveInterval)
-  }, [isPlaying, isComplete, speedMultiplier])
-
-  useEffect(() => {
-    if (!isPlaying || isComplete) return
-    // 保证场上至少有1个目标
-    if (asteroids.length === 0) {
+    if (asteroids.length < 3) {
       spawnAsteroid()
     }
-  }, [isPlaying, isComplete, asteroids.length, spawnAsteroid])
+    const spawnInterval = setInterval(() => {
+      if (asteroids.length < 3) {
+        spawnAsteroid()
+      }
+    }, 2000 / speedMultiplier)
+    return () => clearInterval(spawnInterval)
+  }, [isPlaying, isComplete, asteroids.length, spawnAsteroid, speedMultiplier])
 
   const handleStart = () => {
     setIsPlaying(true)
@@ -202,7 +267,6 @@ export function SpaceGame({ stage, userId, userName, onBack }: SpaceGameProps) {
                 {t("excellentFlying")}, {userName}!
               </p>
             </div>
-
             <div className="space-y-3 bg-muted/30 rounded-2xl p-4">
               <div className="flex justify-between items-center">
                 <span className="text-lg font-medium">{t("score")}:</span>
@@ -219,7 +283,6 @@ export function SpaceGame({ stage, userId, userName, onBack }: SpaceGameProps) {
                 <span className="text-2xl font-bold text-secondary">{accuracy}%</span>
               </div>
             </div>
-
             <div className="flex flex-col gap-3">
               <Button onClick={handleStart} className="w-full h-12 text-lg rounded-2xl shadow-lg">
                 {t("playAgain")}
@@ -296,70 +359,22 @@ export function SpaceGame({ stage, userId, userName, onBack }: SpaceGameProps) {
           <p className="text-3xl font-bold">{timeLeft}s</p>
         </div>
       </div>
-
-      {/* Game Area */}
-      <div className="flex-1 relative rounded-3xl border-4 border-white/20 overflow-hidden bg-black/30">
-        {/* Stars background */}
-        <div className="absolute inset-0">
-          {[...Array(50)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-1 h-1 bg-white rounded-full animate-pulse"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 2}s`,
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Asteroids */}
-        {asteroids.map((asteroid) => (
-          <div
-            key={asteroid.id}
-            className="absolute transition-all duration-100"
-            style={{
-              left: `${asteroid.x}%`,
-              top: `${asteroid.y}%`,
-              transform: "translate(-50%, -50%)",
-            }}
-          >
-            <div className="text-center">
-              <div className="text-5xl mb-2 animate-spin" style={{ animationDuration: "3s" }}>
-                ☄️
-              </div>
-              <div className="bg-white/90 border-2 border-orange-500 rounded-xl px-3 py-1 shadow-lg">
-                <p className="text-lg font-bold font-mono text-black">{asteroid.word}</p>
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {/* Explosions */}
-        {explosions.map((explosion) => (
-          <div
-            key={explosion.id}
-            className="absolute pointer-events-none"
-            style={{
-              left: `${explosion.x}%`,
-              top: `${explosion.y}%`,
-              transform: "translate(-50%, -50%)",
-            }}
-          >
-            <div className="relative">
-              <div className="text-6xl animate-ping absolute -translate-x-1/2 -translate-y-1/2">💥</div>
-              <div className="text-4xl animate-pulse absolute -translate-x-1/2 -translate-y-1/2">🔥</div>
-            </div>
-          </div>
-        ))}
-
-        {/* Earth at bottom */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-          <div className="text-8xl">🌍</div>
-        </div>
+      {/* Canvas Game Area */}
+      <div className="flex-1 flex items-center justify-center bg-black/30 rounded-3xl border-4 border-white/20 p-8 overflow-hidden min-h-[400px]">
+        <canvas
+          ref={canvasRef}
+          width={CANVAS_WIDTH}
+          height={CANVAS_HEIGHT}
+          style={{
+            background: "#1a1625",
+            borderRadius: 24,
+            border: "2px solid #eee",
+            width: 800,
+            height: 500,
+            display: "block",
+          }}
+        />
       </div>
-
       {/* Input Area */}
       <div className="mt-6">
         <input

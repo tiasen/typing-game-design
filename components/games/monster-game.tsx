@@ -94,11 +94,11 @@ export function MonsterGame({
   const getSpeedMultiplier = () => {
     switch (gameSpeed) {
       case "slow":
-        return 0.2; // 80% slower
+        return 0.4; // 80% slower
       case "fast":
-        return 1; // 50% faster
+        return 3; // 50% faster
       default:
-        return 0.5; // normal speed
+        return 1.5; // normal speed
     }
   };
 

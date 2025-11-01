@@ -33,6 +33,7 @@ interface FruitGameProps {
 export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
   const { t, gameSpeed } = useLanguage()
   const [fruits, setFruits] = useState<Fruit[]>([])
+  const [particles, setParticles] = useState<{ id: number; x: number; y: number; emoji: string }[]>([])
   const [input, setInput] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
   const [score, setScore] = useState(0)
@@ -44,8 +45,10 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
   const [totalTyped, setTotalTyped] = useState(0)
   const [errors, setErrors] = useState(0)
   const [nextFruitId, setNextFruitId] = useState(0)
-  const [slicedFruits, setSlicedFruits] = useState<{ id: number; x: number; y: number }[]>([])
   const [practiceContent] = useState(() => generateStageContent(stage.id))
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const CANVAS_WIDTH = 800
+  const CANVAS_HEIGHT = 500
 
   const spawnFruit = useCallback(() => {
     const word = practiceContent[Math.floor(Math.random() * practiceContent.length)]
@@ -63,7 +66,6 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
 
   useEffect(() => {
     if (!isPlaying || isComplete) return
-
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -74,7 +76,6 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
         return prev - 1
       })
     }, 1000)
-
     return () => clearInterval(timer)
   }, [isPlaying, isComplete])
 
@@ -83,44 +84,83 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
       case "slow":
         return 0.2 // 80% slower
       case "fast":
-        return 1 // 50% faster
+        return 1.8 // 50% faster
       default:
-        return 0.5 // normal speed
+        return 1 // normal speed
     }
   }
 
   const speedMultiplier = getSpeedMultiplier()
 
+  // Canvas animation loop for fruit movement and particles
+  useEffect(() => {
+    let animationId: number
+    let lastTime = performance.now()
+    function animate(now: number) {
+      const dt = Math.min((now - lastTime) / 1000, 0.1)
+      lastTime = now
+      if (isPlaying && !isComplete) {
+        setFruits((prev) => {
+          let updated = prev
+            .map((fruit) => ({
+              ...fruit,
+              y: fruit.y - (1 * speedMultiplier) / 3, // 2 * 0.4 * 0.2 = 0.16, 80% slower than previous
+              rotation: fruit.rotation + 0.3 * speedMultiplier,
+            }))
+            .filter((fruit) => fruit.y > -20)
+          return updated
+        })
+        setParticles((prev) =>
+          prev.map((p) => ({ ...p, y: p.y - 40 * dt })).filter((p) => p.y > 0)
+        )
+      }
+      // Draw
+      const canvas = canvasRef.current
+      if (canvas) {
+        const ctx = canvas.getContext("2d")
+        if (ctx) {
+          ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+          fruits.forEach((fruit) => {
+            ctx.save()
+            ctx.translate((fruit.x / 100) * CANVAS_WIDTH, (fruit.y / 100) * CANVAS_HEIGHT)
+            ctx.rotate((fruit.rotation * Math.PI) / 180)
+            ctx.font = "48px serif"
+            ctx.textAlign = "center"
+            ctx.fillText(fruit.emoji, 0, 0)
+            ctx.font = "20px monospace"
+            ctx.fillStyle = "#d97706"
+            ctx.fillText(fruit.word, 0, 40)
+            ctx.restore()
+          })
+          particles.forEach((particle) => {
+            ctx.font = "32px serif"
+            ctx.fillText(particle.emoji, particle.x, particle.y)
+          })
+        }
+      }
+      animationId = requestAnimationFrame(animate)
+    }
+    animationId = requestAnimationFrame(animate)
+    return () => cancelAnimationFrame(animationId)
+  }, [isPlaying, isComplete, speedMultiplier, fruits, particles, CANVAS_HEIGHT])
+
   useEffect(() => {
     if (!isPlaying || isComplete) return
-
-    const moveInterval = setInterval(() => {
-      setFruits((prev) =>
-        prev
-          .map((fruit) => ({
-            ...fruit,
-            y: fruit.y - 2 * speedMultiplier,
-            rotation: fruit.rotation + 5 * speedMultiplier,
-          }))
-          .filter((fruit) => fruit.y > -20),
-      )
-    }, 50)
-
-    return () => clearInterval(moveInterval)
-  }, [isPlaying, isComplete, speedMultiplier])
-
-  useEffect(() => {
-    if (!isPlaying || isComplete) return
-    // 保证场上至少有1个目标
-    if (fruits.length === 0) {
+    if (fruits.length < 3) {
       spawnFruit()
     }
-  }, [isPlaying, isComplete, fruits.length, spawnFruit])
+    const spawnInterval = setInterval(() => {
+      if (fruits.length < 3) {
+        spawnFruit()
+      }
+    }, 2000 / speedMultiplier)
+    return () => clearInterval(spawnInterval)
+  }, [isPlaying, isComplete, fruits.length, spawnFruit, speedMultiplier])
 
   const handleStart = () => {
     setIsPlaying(true)
     setFruits([])
-    setSlicedFruits([])
+    setParticles([])
     setScore(0)
     setTimeLeft(60)
     setTotalTyped(0)
@@ -132,59 +172,37 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setInput(value)
-
     const audioManager = getAudioManager()
-
     // 查找与输入完全匹配的目标
     const matchedFruit = fruits.find((f) => value === f.word)
     if (matchedFruit) {
       audioManager.playSuccess()
       setScore((prev) => prev + matchedFruit.word.length * 12)
       setTotalTyped((prev) => prev + matchedFruit.word.length)
-
-      setSlicedFruits((prev) => [...prev, { id: matchedFruit.id, x: matchedFruit.x, y: matchedFruit.y }])
+      // 计算水果在canvas上的中心坐标
+      const x = (matchedFruit.x / 100) * CANVAS_WIDTH
+      const y = (matchedFruit.y / 100) * CANVAS_HEIGHT
+      const explosionParticles = ["✨", "💫", "⭐"].map((emoji, i) => ({
+        id: Date.now() + i,
+        x,
+        y,
+        emoji,
+      }))
+      setParticles((prev) => [...prev, ...explosionParticles])
       setTimeout(() => {
-        setSlicedFruits((prev) => prev.filter((f) => f.id !== matchedFruit.id))
+        setParticles((prev) => prev.filter((p) => !explosionParticles.find((ep) => ep.id === p.id)))
       }, 800)
-
       setFruits((prev) => prev.filter((f) => f.id !== matchedFruit.id))
       setInput("")
+      if (fruits.length <= 1) {
+        spawnFruit()
+      }
     } else if (value.length > 0) {
       audioManager.playError()
       setErrors((prev) => prev + 1)
       setInput("")
     }
   }
-
-  const saveScore = useCallback(async () => {
-    const timeElapsed = (60 - timeLeft) / 60
-    const calculatedWpm = Math.round(totalTyped / 5 / timeElapsed)
-    const calculatedAccuracy = totalTyped > 0 ? Math.round(((totalTyped - errors) / totalTyped) * 100) : 100
-
-    setWpm(calculatedWpm)
-    setAccuracy(calculatedAccuracy)
-
-    const supabase = createClient()
-    await supabase.from("game_scores").insert({
-      user_id: userId,
-      stage_id: stage.id,
-      game_type: "fruit",
-      wpm: calculatedWpm,
-      accuracy: calculatedAccuracy,
-      score,
-      duration: 60 - timeLeft,
-    })
-
-    const audioManager = getAudioManager()
-    audioManager.playComplete()
-  }, [userId, stage.id, score, timeLeft, totalTyped, errors])
-
-  useEffect(() => {
-    if (isComplete && !isPlaying) {
-      saveScore()
-    }
-  }, [isComplete, isPlaying, saveScore])
-
   if (isComplete) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
@@ -197,7 +215,6 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
                 {t("amazingSlicing")}, {userName}!
               </p>
             </div>
-
             <div className="space-y-3 bg-muted/30 rounded-2xl p-4">
               <div className="flex justify-between items-center">
                 <span className="text-lg font-medium">{t("score")}:</span>
@@ -214,7 +231,6 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
                 <span className="text-2xl font-bold text-secondary">{accuracy}%</span>
               </div>
             </div>
-
             <div className="flex flex-col gap-3">
               <Button onClick={handleStart} className="w-full h-12 text-lg rounded-2xl shadow-lg">
                 {t("playAgain")}
@@ -246,7 +262,6 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
               <h2 className="text-3xl font-bold text-foreground mb-2">{t("fruitNinja")}</h2>
               <p className="text-lg text-muted-foreground">{t("fruitDesc")}</p>
             </div>
-
             <div className="bg-muted/30 rounded-2xl p-4 space-y-2">
               <p className="text-center font-medium">{t("howToPlay")}</p>
               <ul className="space-y-1 text-sm text-muted-foreground">
@@ -256,7 +271,6 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
                 <li>• You have 60 seconds</li>
               </ul>
             </div>
-
             <div className="flex flex-col gap-3">
               <Button onClick={handleStart} className="w-full h-12 text-lg rounded-2xl shadow-lg">
                 {t("startSlicing")}
@@ -291,45 +305,22 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
           <p className="text-3xl font-bold text-destructive">{timeLeft}s</p>
         </div>
       </div>
-
-      {/* Game Area */}
-      <div className="flex-1 relative rounded-3xl border-4 border-primary/20 overflow-hidden bg-gradient-to-b from-sky-200 to-sky-100">
-        {/* Fruits */}
-        {fruits.map((fruit) => (
-          <div
-            key={fruit.id}
-            className="absolute transition-all duration-100"
-            style={{
-              left: `${fruit.x}%`,
-              bottom: `${fruit.y}%`,
-              transform: `translate(-50%, 50%) rotate(${fruit.rotation}deg)`,
-            }}
-          >
-            <div className="text-center">
-              <div className="text-6xl mb-2">{fruit.emoji}</div>
-              <div className="bg-white border-2 border-orange-500 rounded-xl px-3 py-1 shadow-lg">
-                <p className="text-lg font-bold font-mono">{fruit.word}</p>
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {slicedFruits.map((sliced) => (
-          <div
-            key={sliced.id}
-            className="absolute pointer-events-none"
-            style={{
-              left: `${sliced.x}%`,
-              bottom: `${sliced.y}%`,
-            }}
-          >
-            <div className="text-6xl animate-ping">✨</div>
-            <div className="text-5xl animate-bounce absolute top-0 left-2">💫</div>
-            <div className="text-4xl animate-pulse absolute top-2 left-4">⭐</div>
-          </div>
-        ))}
+      {/* Canvas Game Area */}
+      <div className="flex-1 flex items-center justify-center bg-card/50 rounded-3xl border-4 border-primary/20 p-8 overflow-hidden min-h-[400px]">
+        <canvas
+          ref={canvasRef}
+          width={CANVAS_WIDTH}
+          height={CANVAS_HEIGHT}
+          style={{
+            background: "#fff",
+            borderRadius: 24,
+            border: "2px solid #eee",
+            width: 800,
+            height: 500,
+            display: "block",
+          }}
+        />
       </div>
-
       {/* Input Area */}
       <div className="mt-6">
         <input
@@ -343,7 +334,6 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
           spellCheck={false}
           autoComplete="off"
           onBlur={() => {
-            // 延迟，避免和点击按钮等冲突
             setTimeout(() => {
               inputRef.current?.focus()
             }, 100)
