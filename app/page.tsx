@@ -1,14 +1,20 @@
 "use client"
 
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/lib/language-context"
+import { LanguageSwitcher } from "@/components/language-switcher"
 
 export default function HomePage() {
   const { t } = useLanguage()
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100">
+      {/* Language Switcher at the top right */}
+      <div className="absolute top-6 right-6 z-10">
+        <LanguageSwitcher />
+      </div>
       <div className="max-w-4xl w-full text-center space-y-8 animate-bounce-in">
         {/* Cute mascot area */}
         <div className="flex justify-center mb-8">

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { useLanguage } from "@/lib/language-context"
+import { LanguageSwitcher } from "@/components/language-switcher"
 import { useGuest } from "@/lib/guest-context"
 
 export default function DashboardPage() {
@@ -90,7 +91,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100">
       {/* Header */}
-      <header className="bg-card/80 backdrop-blur-sm border-b-4 border-primary/20 shadow-lg">
+      <header className="bg-card/80 backdrop-blur-sm border-b-4 border-primary/20 shadow-lg relative">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="text-4xl">⌨️</div>
@@ -116,6 +117,10 @@ export default function DashboardPage() {
                 {t("settings")}
               </Button>
             </Link>
+            {/* Language Switcher */}
+            <div className="ml-2">
+              <LanguageSwitcher />
+            </div>
           </div>
         </div>
       </header>
