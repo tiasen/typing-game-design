@@ -3,7 +3,6 @@
 import type React from "react"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,6 +14,9 @@ import { useLanguage } from "@/lib/language-context"
 import { useGuest } from "@/lib/guest-context"
 import { generateStageContent } from "@/lib/content-generator" // Import content generator
 import { KeyboardDisplay } from "@/components/keyboard-display"
+import { ComboDisplay } from "@/components/combo-display"
+import { ProgressMascot } from "@/components/progress-mascot"
+import confetti from "canvas-confetti"
 
 interface PracticeSessionProps {
   stage: Stage
@@ -24,7 +26,6 @@ interface PracticeSessionProps {
 export function PracticeSession({ stage, userId }: PracticeSessionProps) {
   const { t } = useLanguage()
   const { isGuest, saveProgress: saveGuestProgress } = useGuest()
-  const router = useRouter()
 
   const [practiceContent] = useState(() => generateStageContent(stage.id))
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -36,10 +37,17 @@ export function PracticeSession({ stage, userId }: PracticeSessionProps) {
   const [wpm, setWpm] = useState(0)
   const [accuracy, setAccuracy] = useState(100)
   const [stars, setStars] = useState(0)
+  const [combo, setCombo] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const currentText = practiceContent[currentIndex]
-  const progress = ((currentIndex + 1) / practiceContent.length) * 100
+  
+  // Calculate total progress across all sentences
+  const totalSentences = practiceContent.length
+  // Current sentence progress
+  const currentSentenceProgress = input.length / currentText.length
+  // Overall progress: (completed sentences + current sentence partial) / total sentences
+  const progress = ((currentIndex + currentSentenceProgress) / totalSentences) * 100
 
   const nextChar = input.length < currentText.length ? currentText[input.length] : undefined
 
@@ -49,32 +57,49 @@ export function PracticeSession({ stage, userId }: PracticeSessionProps) {
     }
   }, [input, startTime])
 
-  const calculateResults = useCallback(() => {
+  const calculateResults = useCallback((finalCharsToAdd = 0) => {
     if (!startTime) return { wpm: 0, accuracy: 100 }
 
     const timeInMinutes = (Date.now() - startTime) / 60000
-    const wordsTyped = totalChars / 5
+    const finalTotalChars = totalChars + finalCharsToAdd
+    const wordsTyped = finalTotalChars / 5
     const calculatedWpm = Math.round(wordsTyped / timeInMinutes)
-    const calculatedAccuracy = Math.round(((totalChars - errors) / totalChars) * 100)
+    const calculatedAccuracy = finalTotalChars > 0 
+      ? Math.round(((finalTotalChars - errors) / finalTotalChars) * 100)
+      : 100
 
     return { wpm: calculatedWpm, accuracy: calculatedAccuracy }
   }, [startTime, totalChars, errors])
 
   const calculateStars = (wpm: number, accuracy: number) => {
-    if (accuracy < 85) return 1
+    if (accuracy < 80) return 1 // Slightly more forgiving accuracy floor
+    
+    // 3 Stars: Meet both targets
     if (wpm >= stage.targetWpm && accuracy >= stage.targetAccuracy) return 3
-    if (wpm >= stage.targetWpm * 0.8 && accuracy >= stage.targetAccuracy - 3) return 2
+    
+    // 2 Stars: Meet 80% of speed target AND (meet accuracy target OR be within 5% of accuracy)
+    const speedScore = wpm / stage.targetWpm
+    if (speedScore >= 0.8 && accuracy >= (stage.targetAccuracy - 5)) return 2
+    
     return 1
   }
 
-  const handleComplete = useCallback(async () => {
-    const results = calculateResults()
+  const handleComplete = useCallback(async (finalCharsToAdd = 0) => {
+    const results = calculateResults(finalCharsToAdd)
     const earnedStars = calculateStars(results.wpm, results.accuracy)
 
     setWpm(results.wpm)
     setAccuracy(results.accuracy)
     setStars(earnedStars)
     setIsComplete(true)
+
+    // Trigger celebration confetti
+    confetti({
+      particleCount: 150,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#FFB6C1', '#ADD8E6', '#90EE90', '#FFD700', '#FFA07A']
+    })
 
     const audioManager = getAudioManager()
     audioManager.playComplete()
@@ -128,13 +153,27 @@ export function PracticeSession({ stage, userId }: PracticeSessionProps) {
 
     if (e.key === "Enter" && input === currentText) {
       audioManager.playSuccess()
-      setTotalChars((prev) => prev + currentText.length)
+      
+      // Trigger mini confetti for sentence completion
+      confetti({
+        particleCount: 30,
+        spread: 50,
+        origin: { y: 0.7 },
+        scalar: 0.7,
+        shapes: ['star'],
+        colors: ['#FFE4E1', '#E6E6FA']
+      })
+      
+      // Bonus combo for finishing sentence
+      setCombo(prev => prev + 5)
 
       if (currentIndex < practiceContent.length - 1) {
+        setTotalChars((prev) => prev + currentText.length)
         setCurrentIndex((prev) => prev + 1)
         setInput("")
       } else {
-        handleComplete()
+        // Pass the length of the last sentence, as state hasn't updated yet
+        handleComplete(currentText.length)
       }
     } else if (e.key.length === 1) {
       audioManager.playKeyPress()
@@ -151,10 +190,27 @@ export function PracticeSession({ stage, userId }: PracticeSessionProps) {
       if (newChar !== expectedChar) {
         setErrors((prev) => prev + 1)
         audioManager.playError()
+        setCombo(0) // Reset combo on error
+      } else {
+        // Correct char typed
+        setCombo(prev => prev + 1)
       }
     }
 
     setInput(newValue)
+  }
+
+  const handleRestart = () => {
+    setCurrentIndex(0)
+    setInput("")
+    setStartTime(null)
+    setErrors(0)
+    setTotalChars(0)
+    setIsComplete(false)
+    setWpm(0)
+    setAccuracy(100)
+    setStars(0)
+    setCombo(0)
   }
 
   if (isComplete) {
@@ -188,8 +244,8 @@ export function PracticeSession({ stage, userId }: PracticeSessionProps) {
             </div>
 
             <div className="flex flex-col gap-3">
-              <Button className="w-full h-14 text-lg rounded-2xl shadow-lg" asChild>
-                <Link href={`/practice/${stage.id}`}>{t("practiceAgain")}</Link>
+              <Button className="w-full h-14 text-lg rounded-2xl shadow-lg" onClick={handleRestart}>
+                {t("practiceAgain")}
               </Button>
               <Button className="w-full h-14 text-lg rounded-2xl shadow-lg" asChild>
                 <Link href={`/game/${stage.id}`}>
@@ -219,24 +275,25 @@ export function PracticeSession({ stage, userId }: PracticeSessionProps) {
               </Button>
             </Link>
             <div>
-              <h1 className="text-xl font-bold text-primary">{t(stage.title)}</h1>
-              <p className="text-sm text-muted-foreground">{t(stage.description)}</p>
+              <h1 className="text-xl font-bold text-primary">{t(stage.title as any)}</h1>
+              <p className="text-sm text-muted-foreground">{t(stage.description as any)}</p>
             </div>
           </div>
           <div className="text-2xl">{stage.icon}</div>
         </div>
       </header>
 
-      {/* Progress Bar */}
-      <div className="bg-card/50 px-6 py-3">
-        <Progress value={progress} className="h-3" />
-        <p className="text-center mt-2 text-sm font-medium">
-          {currentIndex + 1} / {practiceContent.length}
-        </p>
+      {/* Progress Mascot */}
+      <div className="pt-6 px-6 bg-gradient-to-b from-blue-50/50 to-transparent">
+        <div className="max-w-4xl mx-auto">
+          <ProgressMascot progress={progress} />
+        </div>
       </div>
 
       {/* Practice Area */}
-      <main className="flex-1 flex items-center justify-center p-6">
+      <main className="flex-1 flex items-center justify-center p-6 relative">
+        <ComboDisplay combo={combo} />
+        
         <div className="max-w-7xl w-full">
           <div className="grid lg:grid-cols-[400px_1fr] gap-6 items-start">
             {/* Left: Keyboard Display */}

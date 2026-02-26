@@ -45,6 +45,8 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
   const [accuracy, setAccuracy] = useState(100)
   const [totalTyped, setTotalTyped] = useState(0)
   const [errors, setErrors] = useState(0)
+  const [combo, setCombo] = useState(0)
+  const [maxCombo, setMaxCombo] = useState(0)
   const [nextFruitId, setNextFruitId] = useState(0)
   const [practiceContent] = useState(() => generateStageContent(stage.id))
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -160,6 +162,8 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
     setTimeLeft(60)
     setTotalTyped(0)
     setErrors(0)
+    setCombo(0)
+    setMaxCombo(0)
     setIsComplete(false)
     spawnFruit()
   }
@@ -170,10 +174,24 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
     const audioManager = getAudioManager()
     // 查找与输入完全匹配的目标
     const matchedFruit = fruits.find((f) => value === f.word)
+    
     if (matchedFruit) {
       audioManager.playSuccess()
-      setScore((prev) => prev + matchedFruit.word.length * 12)
+
+      const newCombo = combo + 1
+      setCombo(newCombo)
+      if (newCombo > maxCombo) setMaxCombo(newCombo)
+
+      // Base score: 10 points per character
+      const baseScore = matchedFruit.word.length * 10
+      // Combo bonus: 2 points per combo count
+      const comboBonus = newCombo * 2
+      // Speed multiplier bonus
+      const speedBonus = Math.floor(baseScore * (speedMultiplier - 1))
+
+      setScore((prev) => prev + baseScore + comboBonus + speedBonus)
       setTotalTyped((prev) => prev + matchedFruit.word.length)
+
       // 计算水果在canvas上的中心坐标
       const x = (matchedFruit.x / 100) * CANVAS_WIDTH
       const y = (matchedFruit.y / 100) * CANVAS_HEIGHT
@@ -195,6 +213,8 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
     } else if (value.length > 0) {
       audioManager.playError()
       setErrors((prev) => prev + 1)
+      setCombo(0) // Reset combo on error
+      setScore((prev) => Math.max(0, prev - 5)) // Penalty for errors
       setInput("")
     }
   }
@@ -279,6 +299,13 @@ export function FruitGame({ stage, userId, userName, onBack }: FruitGameProps) {
               </Button>
             </div>
           </CardContent>
+        
+        {/* Combo Display */}
+        <div className={`flex flex-col items-center transition-all duration-300 ${combo > 1 ? 'opacity-100 scale-110' : 'opacity-0 scale-90'}`}>
+          <span className="text-sm font-bold text-orange-500 uppercase tracking-widest">Combo</span>
+          <span className="text-4xl font-black text-orange-600 drop-shadow-md">{combo}x</span>
+        </div>
+
         </Card>
       </div>
     )

@@ -48,6 +48,8 @@ export function SpaceGame({ stage, userId, userName, onBack }: SpaceGameProps) {
   const [accuracy, setAccuracy] = useState(100)
   const [totalTyped, setTotalTyped] = useState(0)
   const [errors, setErrors] = useState(0)
+  const [combo, setCombo] = useState(0)
+  const [maxCombo, setMaxCombo] = useState(0)
   const [nextAsteroidId, setNextAsteroidId] = useState(0)
   const [practiceContent] = useState(() => generateStageContent(stage.id))
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -184,6 +186,8 @@ export function SpaceGame({ stage, userId, userName, onBack }: SpaceGameProps) {
     setTimeLeft(60)
     setTotalTyped(0)
     setErrors(0)
+    setCombo(0)
+    setMaxCombo(0)
     setIsComplete(false)
     spawnAsteroid()
   }
@@ -198,7 +202,19 @@ export function SpaceGame({ stage, userId, userName, onBack }: SpaceGameProps) {
     const matchedAsteroid = asteroids.find((a) => value === a.word)
     if (matchedAsteroid) {
       audioManager.playSuccess()
-      setScore((prev) => prev + matchedAsteroid.word.length * 15)
+      
+      const newCombo = combo + 1
+      setCombo(newCombo)
+      if (newCombo > maxCombo) setMaxCombo(newCombo)
+
+      // Base score: 10 points per character
+      const baseScore = matchedAsteroid.word.length * 10
+      // Combo bonus: 5 points per combo count (Space game is harder)
+      const comboBonus = newCombo * 5
+      // Speed multiplier bonus
+      const speedBonus = Math.floor(baseScore * (speedMultiplier - 1))
+
+      setScore((prev) => prev + baseScore + comboBonus + speedBonus)
       setTotalTyped((prev) => prev + matchedAsteroid.word.length)
 
       const newExplosion: Explosion = {
@@ -216,6 +232,8 @@ export function SpaceGame({ stage, userId, userName, onBack }: SpaceGameProps) {
     } else if (value.length > 0) {
       audioManager.playError()
       setErrors((prev) => prev + 1)
+      setCombo(0) // Reset combo
+      setScore((prev) => Math.max(0, prev - 10)) // Higher penalty for space
       setInput("")
     }
   }
@@ -348,6 +366,13 @@ export function SpaceGame({ stage, userId, userName, onBack }: SpaceGameProps) {
             <p className="text-2xl font-bold">{score}</p>
           </div>
         </div>
+
+        {/* Combo Display */}
+         <div className={`flex flex-col items-center transition-all duration-300 ${combo > 1 ? 'opacity-100 scale-110' : 'opacity-0 scale-90'}`}>
+          <span className="text-sm font-bold text-yellow-400 uppercase tracking-widest">Combo</span>
+          <span className="text-4xl font-black text-yellow-500 drop-shadow-md">{combo}x</span>
+        </div>
+
         <div className="text-center">
           <p className="text-sm opacity-80">{t("timeLeft")}</p>
           <p className="text-3xl font-bold">{timeLeft}s</p>

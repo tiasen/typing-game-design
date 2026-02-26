@@ -55,6 +55,8 @@ export function MonsterGame({
   const [accuracy, setAccuracy] = useState(100);
   const [totalTyped, setTotalTyped] = useState(0);
   const [errors, setErrors] = useState(0);
+  const [combo, setCombo] = useState(0);
+  const [maxCombo, setMaxCombo] = useState(0);
   const [nextMonsterId, setNextMonsterId] = useState(0);
   const [practiceContent] = useState(() => generateStageContent(stage.id));
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -118,6 +120,8 @@ export function MonsterGame({
     setTimeLeft(60);
     setTotalTyped(0);
     setErrors(0);
+    setCombo(0);
+    setMaxCombo(0);
     setIsComplete(false);
     spawnMonster();
   };
@@ -128,44 +132,58 @@ export function MonsterGame({
 
     const audioManager = getAudioManager();
 
+    // Find monster whose word starts with current input
     const matchingMonster = monsters.find((m) => m.word.startsWith(value));
-    if (matchingMonster) {
-      if (value === matchingMonster.word) {
-        audioManager.playSuccess();
-        setScore((prev) => prev + matchingMonster.word.length * 10);
-        setTotalTyped((prev) => prev + matchingMonster.word.length);
 
-        // 计算怪物在canvas上的中心坐标
-        const x = (matchingMonster.x / 100) * CANVAS_WIDTH;
-        const y = ((matchingMonster.position * 10) / 100) * CANVAS_HEIGHT + 40;
-        const explosionParticles: Particle[] = [
-          "💥",
-          "⭐",
-          "✨",
-          "💫",
-          "🌟",
-        ].map((emoji, i) => ({
+    // If input exactly matches a monster word -> defeat monster
+    if (matchingMonster && value === matchingMonster.word) {
+      const newCombo = combo + 1;
+      setCombo(newCombo);
+      if (newCombo > maxCombo) setMaxCombo(newCombo);
+
+      // Base score: 10 points per character
+      const baseScore = matchingMonster.word.length * 10;
+      // Combo bonus: 3 points per combo count (Monster game slightly harder)
+      const comboBonus = newCombo * 3;
+      // Speed multiplier bonus based on game speed
+      const speedBonus = Math.floor(baseScore * (speedMultiplier - 1));
+
+      setScore((prev) => prev + baseScore + comboBonus + speedBonus);
+      setTotalTyped((prev) => prev + matchingMonster.word.length);
+
+      audioManager.playSuccess();
+
+      // 计算怪物在canvas上的中心坐标
+      const x = (matchingMonster.x / 100) * CANVAS_WIDTH;
+      const y = ((matchingMonster.position * 10) / 100) * CANVAS_HEIGHT + 40;
+      const explosionParticles: Particle[] = ["💥", "⭐", "✨", "💫", "🌟"].map(
+        (emoji, i) => ({
           id: Date.now() + i,
           x,
           y,
           emoji,
-        }));
-        setParticles((prev) => [...prev, ...explosionParticles]);
-        setTimeout(() => {
-          setParticles((prev) =>
-            prev.filter((p) => !explosionParticles.find((ep) => ep.id === p.id))
-          );
-        }, 1000);
+        })
+      );
+      setParticles((prev) => [...prev, ...explosionParticles]);
+      setTimeout(() => {
+        setParticles((prev) =>
+          prev.filter((p) => !explosionParticles.find((ep) => ep.id === p.id))
+        );
+      }, 1000);
 
-        setMonsters((prev) => prev.filter((m) => m.id !== matchingMonster.id));
-        setInput("");
-        if (monsters.length <= 1) {
-          spawnMonster();
-        }
+      // Remove defeated monster and maybe spawn a new one
+      setMonsters((prev) => prev.filter((m) => m.id !== matchingMonster.id));
+      setInput("");
+      if (monsters.length <= 1) {
+        spawnMonster();
       }
-    } else if (value.length > 0) {
+    } else if (!matchingMonster && value.length > 0) {
+      // No monster matches this input -> error
       audioManager.playError();
       setErrors((prev) => prev + 1);
+      setCombo(0);
+      // Small score penalty, not below 0
+      setScore((prev) => Math.max(0, prev - 5));
       setInput("");
     }
   };
@@ -381,6 +399,13 @@ export function MonsterGame({
             <p className="text-2xl font-bold text-primary">{score}</p>
           </div>
         </div>
+
+        {/* Combo Display */}
+         <div className={`flex flex-col items-center transition-all duration-300 ${combo > 1 ? 'opacity-100 scale-110' : 'opacity-0 scale-90'}`}>
+          <span className="text-sm font-bold text-purple-500 uppercase tracking-widest">Combo</span>
+          <span className="text-4xl font-black text-purple-600 drop-shadow-md">{combo}x</span>
+        </div>
+
         <div className="text-center">
           <p className="text-sm text-muted-foreground">{t("timeLeft")}</p>
           <p className="text-3xl font-bold text-destructive">{timeLeft}s</p>
