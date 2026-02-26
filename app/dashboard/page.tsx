@@ -111,6 +111,12 @@ export default function DashboardPage() {
                 </Button>
               </Link>
             )}
+            {/* <Link href="/fun">
+              <Button variant="outline" className="rounded-full border-2 bg-transparent">
+                <span className="text-xl mr-2">🎉</span>
+                {t("funMode")}
+              </Button>
+            </Link> */}
             <Link href="/settings">
               <Button variant="outline" className="rounded-full border-2 bg-transparent">
                 <span className="text-xl mr-2">⚙️</span>

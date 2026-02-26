@@ -142,6 +142,16 @@ export const translations = {
     chooseDifferentGame: "Choose Different Game",
     timeLeft: "Time Left",
 
+    // Fun / Entertainment Mode
+    funMode: "Fun Mode",
+    funModeTitle: "Fun Mode (Mini Games)",
+    funModeDesc: "Play extra fun typing mini games.",
+    froggerTyping: "Frog River Typing",
+    froggerDesc: "Help the frog cross the river by typing!",
+    froggerInstructions:
+      "Type the word on the log to help the frog jump forward. Reach the other side before time runs out!",
+    comingSoon: "Coming soon",
+
     // Leaderboard
     globalRankings: "Global Rankings",
     myHistory: "My History",
@@ -338,6 +348,16 @@ export const translations = {
     playAgain: "再玩一次",
     chooseDifferentGame: "选择其他游戏",
     timeLeft: "剩余时间",
+
+    // Fun / Entertainment Mode
+    funMode: "娱乐模式",
+    funModeTitle: "娱乐模式（小游戏）",
+    funModeDesc: "玩一些额外的趣味打字小游戏。",
+    froggerTyping: "青蛙过河打字",
+    froggerDesc: "通过打字帮助小青蛙安全过河！",
+    froggerInstructions:
+      "输入木头上的单词，让青蛙向前跳，尽快在时间结束前到达对岸！",
+    comingSoon: "敬请期待",
 
     // Leaderboard
     globalRankings: "全球排名",

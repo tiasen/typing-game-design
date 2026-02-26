@@ -27,6 +27,7 @@ export default async function LeaderboardPage() {
     fruit: "fruitNinja",
     monster: "monsterTyping",
     space: "spaceTyping",
+    frogger: "froggerTyping",
     // 你可以根据实际情况添加更多类型
   };
   const supabase = await createClient()
